@@ -44,11 +44,31 @@ No Firebase Functions are used. Both clients connect directly to Firestore and A
 
 On sign-in, Firestore data takes over and local storage is discarded.
 
-## Git Conventions
+## Git Workflow
 
-- Branch names: `feature/<short-description>` or `fix/<short-description>`
-- Commit style: imperative present tense (`add`, `fix`, `update`, `remove`)
+**Never commit directly to `main`.** All work happens on a feature branch and merges via Pull Request after code review.
+
+```
+git checkout -b feature/<short-description>
+# ... implement, commit ...
+git push -u origin feature/<short-description>
+gh pr create
+# ... review and approval ...
+gh pr merge
+```
+
+### Branch naming
+- `feature/<short-description>` — new functionality
+- `fix/<short-description>` — bug fixes
+
+### Commit style
+- Imperative present tense: `add`, `fix`, `update`, `remove`
 - Prefix: `feat:` for features, `fix:` for bugs, `chore:` for scaffolding/config, `docs:` for documentation
+
+### Pull Requests
+- Every PR requires code review before merging
+- PR title should be concise (under 70 chars)
+- PR description should summarize what changed and include a test plan
 
 ## What Belongs in Each CLAUDE.md
 
