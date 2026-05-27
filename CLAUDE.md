@@ -70,6 +70,24 @@ gh pr merge
 - PR title should be concise (under 70 chars)
 - PR description should summarize what changed and include a test plan
 
+## Secrets and Config Values
+
+**Never hardcode Firebase config values in any committed file** — not in docs, specs, plans, or source code comments. This includes:
+- API keys (`AIzaSy...`)
+- App IDs (`1:...:web:...`)
+- Messaging sender IDs (GCP project numbers)
+
+These values belong in:
+- `web/.env.local` — local dev (gitignored via `*.local`)
+- GitHub repository secrets — CI/CD (Settings → Secrets and variables → Actions)
+
+To retrieve the current config values at any time:
+```bash
+firebase apps:sdkconfig WEB --project=iammoo-ctracer
+```
+
+Project-level identifiers (`iammoo-ctracer`, derived URLs like `iammoo-ctracer.firebaseapp.com`) are fine to reference in committed files since they're already public via `.firebaserc`.
+
 ## What Belongs in Each CLAUDE.md
 
 - **Root (this file):** monorepo overview, Firebase setup, storage strategy, git conventions

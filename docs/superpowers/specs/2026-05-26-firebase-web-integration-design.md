@@ -18,7 +18,7 @@ The web app's Firebase SDK stubs (`auth = null`, `db = null`) and localStorage-o
 - **Firestore:** Created, production mode, nam5 region
 - **Auth providers:** Email/password and Google
 - **Security rules:** Deployed — users can only read/write their own `users/{uid}/**` path
-- **Web app registered:** App ID `1:812768609578:web:3a5b0568eb2e94f7068a53`
+- **Web app registered:** App ID `<your-firebase-app-id>`
 
 ---
 
@@ -28,12 +28,12 @@ Firebase config values are embedded in the Vite bundle as `VITE_FIREBASE_*` env 
 
 `.env.local` (gitignored):
 ```
-VITE_FIREBASE_API_KEY=AIzaSyCFHA_Goxe_5f9KmsUDuL6UYAOybkgf04k
-VITE_FIREBASE_AUTH_DOMAIN=iammoo-ctracer.firebaseapp.com
+VITE_FIREBASE_API_KEY=<run: firebase apps:sdkconfig WEB to get this value>
+VITE_FIREBASE_AUTH_DOMAIN=iammoo-ctracer.firebaseapp.com (derived from project ID)
 VITE_FIREBASE_PROJECT_ID=iammoo-ctracer
-VITE_FIREBASE_STORAGE_BUCKET=iammoo-ctracer.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=812768609578
-VITE_FIREBASE_APP_ID=1:812768609578:web:3a5b0568eb2e94f7068a53
+VITE_FIREBASE_STORAGE_BUCKET=iammoo-ctracer.firebasestorage.app (derived from project ID)
+VITE_FIREBASE_MESSAGING_SENDER_ID=<your-messaging-sender-id>
+VITE_FIREBASE_APP_ID=<your-firebase-app-id>
 ```
 
 ---
@@ -183,7 +183,7 @@ Preview channels expire after 7 days automatically.
 | `VITE_FIREBASE_AUTH_DOMAIN` | From Firebase config |
 | `VITE_FIREBASE_PROJECT_ID` | `iammoo-ctracer` |
 | `VITE_FIREBASE_STORAGE_BUCKET` | From Firebase config |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `812768609578` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `<your-messaging-sender-id>` |
 | `VITE_FIREBASE_APP_ID` | From Firebase config |
 
 The service account key is generated via the Firebase CLI / GCP Console and added to GitHub repo settings → Secrets and variables → Actions.

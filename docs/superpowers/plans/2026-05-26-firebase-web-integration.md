@@ -45,12 +45,12 @@ Wire up `firebase.js` with real config from env vars.
 Create `web/.env.local` (this file is already gitignored via `*.local`):
 
 ```
-VITE_FIREBASE_API_KEY=AIzaSyCFHA_Goxe_5f9KmsUDuL6UYAOybkgf04k
-VITE_FIREBASE_AUTH_DOMAIN=iammoo-ctracer.firebaseapp.com
+VITE_FIREBASE_API_KEY=<run: firebase apps:sdkconfig WEB to get this value>
+VITE_FIREBASE_AUTH_DOMAIN=iammoo-ctracer.firebaseapp.com (derived from project ID)
 VITE_FIREBASE_PROJECT_ID=iammoo-ctracer
-VITE_FIREBASE_STORAGE_BUCKET=iammoo-ctracer.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=812768609578
-VITE_FIREBASE_APP_ID=1:812768609578:web:3a5b0568eb2e94f7068a53
+VITE_FIREBASE_STORAGE_BUCKET=iammoo-ctracer.firebasestorage.app (derived from project ID)
+VITE_FIREBASE_MESSAGING_SENDER_ID=<your-messaging-sender-id>
+VITE_FIREBASE_APP_ID=<your-firebase-app-id>
 ```
 
 - [ ] **Step 2: Replace `firebase.js` with real SDK init**
@@ -909,12 +909,12 @@ In the same GitHub Secrets UI, add these 6 secrets:
 
 | Name | Value |
 |------|-------|
-| `VITE_FIREBASE_API_KEY` | `AIzaSyCFHA_Goxe_5f9KmsUDuL6UYAOybkgf04k` |
-| `VITE_FIREBASE_AUTH_DOMAIN` | `iammoo-ctracer.firebaseapp.com` |
+| `VITE_FIREBASE_API_KEY` | `<run: firebase apps:sdkconfig WEB to get this value>` |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `iammoo-ctracer.firebaseapp.com (derived from project ID)` |
 | `VITE_FIREBASE_PROJECT_ID` | `iammoo-ctracer` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | `iammoo-ctracer.firebasestorage.app` |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `812768609578` |
-| `VITE_FIREBASE_APP_ID` | `1:812768609578:web:3a5b0568eb2e94f7068a53` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | `iammoo-ctracer.firebasestorage.app (derived from project ID)` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `<your-messaging-sender-id>` |
+| `VITE_FIREBASE_APP_ID` | `<your-firebase-app-id>` |
 
 ---
 
