@@ -1,4 +1,5 @@
 import { REFERENCE, ANTI_PATTERNS_ALL } from "../data/index.js";
+import Card from '../components/Card';
 
 function PatternIcon({ name }) {
   if (name === "Parallelization") {
@@ -62,17 +63,19 @@ function PatternIcon({ name }) {
 
 export default function KeyConcepts() {
   return (
-    <div className="ref-screen">
-      <div className="ref-banner">
+    <div className="screen ref-screen">
+      <div className="ref-toolrow">
         <span className="pill pill-warn">No docs allowed during exam</span>
-        <span className="pill pill-neutral">Print to PDF · ⌘P</span>
+        <span className="pill pill-dim">Print to PDF · ⌘P</span>
       </div>
 
       <div className="ref-grid">
         {/* Card 01 — API essentials */}
-        <div className="ref-card ref-api">
-          <div className="ref-eyebrow">01</div>
-          <h3 className="ref-heading">API essentials</h3>
+        <Card className="ref-card ref-api">
+          <div className="ref-card-head">
+            <span className="ref-num">01</span>
+            <h3>API essentials</h3>
+          </div>
           <dl className="ref-dl">
             {REFERENCE.api.map(({ k, v }) => (
               <div key={k} className="ref-dl-row">
@@ -81,13 +84,15 @@ export default function KeyConcepts() {
               </div>
             ))}
           </dl>
-        </div>
+        </Card>
 
         {/* Card 02 — Model comparison */}
-        <div className="ref-card ref-models">
-          <div className="ref-eyebrow">02</div>
-          <h3 className="ref-heading">Model comparison</h3>
-          <table className="ref-table">
+        <Card className="ref-card ref-models">
+          <div className="ref-card-head">
+            <span className="ref-num">02</span>
+            <h3>Model comparison</h3>
+          </div>
+          <table className="ref-tab">
             <thead>
               <tr>
                 <th>Model</th>
@@ -100,92 +105,101 @@ export default function KeyConcepts() {
             <tbody>
               {REFERENCE.models.map(({ name, cost, speed, use, ctx }) => (
                 <tr key={name}>
-                  <td>{name}</td>
+                  <td><strong>{name}</strong></td>
                   <td>{cost}</td>
                   <td>{speed}</td>
-                  <td>{use}</td>
-                  <td>{ctx}</td>
+                  <td className="ref-use">{use}</td>
+                  <td><code>{ctx}</code></td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
 
         {/* Card 03 — MCP primitives */}
-        <div className="ref-card ref-mcp">
-          <div className="ref-eyebrow">03</div>
-          <h3 className="ref-heading">MCP primitives</h3>
-          <div className="ref-mcp-grid">
+        <Card className="ref-card ref-mcp">
+          <div className="ref-card-head">
+            <span className="ref-num">03</span>
+            <h3>MCP primitives</h3>
+          </div>
+          <div className="mcp-row">
             {REFERENCE.mcp.map(({ name, controller, use }) => (
-              <div key={name} className="ref-mcp-cell">
-                <div className="ref-mcp-name">{name}</div>
-                <div className="ref-mcp-controller">{controller}</div>
-                <div className="ref-mcp-use">{use}</div>
+              <div key={name} className="mcp-cell">
+                <div className="mcp-title">{name}</div>
+                <div className="mcp-ctrl">{controller}</div>
+                <div className="mcp-use">{use}</div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
         {/* Card 04 — Claude Code hierarchy */}
-        <div className="ref-card ref-cc">
-          <div className="ref-eyebrow">04</div>
-          <h3 className="ref-heading">Claude Code hierarchy</h3>
-          <div className="ref-cc-cols">
-            <div className="ref-cc-col">
-              <div className="ref-cc-section-title">CLAUDE.md levels</div>
-              {REFERENCE.claudeCode.claudeMd.map(({ level, path, desc }) => (
-                <div key={level} className="ref-cc-row">
-                  <span className="ref-cc-level">{level}</span>
-                  <span className="ref-cc-path">{path}</span>
-                  <span className="ref-cc-desc">{desc}</span>
-                </div>
-              ))}
+        <Card className="ref-card ref-cc">
+          <div className="ref-card-head">
+            <span className="ref-num">04</span>
+            <h3>Claude Code hierarchy</h3>
+          </div>
+          <div className="cc-grid">
+            <div>
+              <div className="col-head">CLAUDE.md levels</div>
+              <ul className="cc-list">
+                {REFERENCE.claudeCode.claudeMd.map(({ level, path, desc }) => (
+                  <li key={level}>
+                    <div className="cc-l1"><strong>{level}</strong> <code>{path}</code></div>
+                    <div className="cc-l2">{desc}</div>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="ref-cc-col">
-              <div className="ref-cc-section-title">Settings files</div>
-              {REFERENCE.claudeCode.settings.map(({ k, v }) => (
-                <div key={k} className="ref-cc-row">
-                  <span className="ref-cc-level">{k}</span>
-                  <span className="ref-cc-desc">{v}</span>
-                </div>
-              ))}
-              <div className="ref-cc-section-title ref-cc-section-title--spaced">Hook types</div>
-              <div className="ref-cc-hooks">
+            <div>
+              <div className="col-head">Settings files</div>
+              <ul className="cc-list">
+                {REFERENCE.claudeCode.settings.map(({ k, v }) => (
+                  <li key={k}>
+                    <div className="cc-l1"><code>{k}</code></div>
+                    <div className="cc-l2">{v}</div>
+                  </li>
+                ))}
+              </ul>
+              <div className="col-head mt-12">Hook types</div>
+              <div className="kbd-row">
                 {REFERENCE.claudeCode.hooks.map((hookName) => (
                   <kbd key={hookName} className="kbd">{hookName}</kbd>
                 ))}
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Card 05 — Agentic patterns */}
-        <div className="ref-card ref-patt">
-          <div className="ref-eyebrow">05</div>
-          <h3 className="ref-heading">Agentic patterns</h3>
-          <div className="ref-patt-grid">
+        <Card className="ref-card ref-patt">
+          <div className="ref-card-head">
+            <span className="ref-num">05</span>
+            <h3>Agentic patterns</h3>
+          </div>
+          <div className="patt-grid">
             {REFERENCE.patterns.map(({ name, desc }) => (
-              <div key={name} className="ref-patt-cell">
-                <div className="ref-patt-icon">
-                  <PatternIcon name={name} />
-                </div>
-                <div className="ref-patt-name">{name}</div>
-                <div className="ref-patt-desc">{desc}</div>
+              <div key={name} className="patt-cell">
+                <div className="patt-title">{name}</div>
+                <div className="patt-desc">{desc}</div>
+                <PatternIcon name={name} />
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
         {/* Card 06 — Anti-patterns */}
-        <div className="ref-card ref-anti">
-          <div className="ref-eyebrow">06</div>
-          <h3 className="ref-heading">Anti-patterns</h3>
-          <ul className="ref-anti-list">
+        <Card className="ref-card ref-anti">
+          <div className="ref-card-head">
+            <span className="ref-num">06</span>
+            <h3>Anti-patterns</h3>
+          </div>
+          <ul className="anti-list anti-list-compact">
             {ANTI_PATTERNS_ALL.map((ap) => (
               <li key={ap}><span className="ref-x">✕</span>{ap}</li>
             ))}
           </ul>
-        </div>
+        </Card>
       </div>
     </div>
   );
