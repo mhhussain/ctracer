@@ -57,7 +57,7 @@ export default function Courses() {
               <div className="course-top">
                 <h3 className="course-name">{c.name}</h3>
                 <button
-                  className={`btn ${done ? 'btn-done' : 'btn-secondary'}`}
+                  className={done ? 'btn-done is-done' : 'btn btn-secondary'}
                   onClick={() => toggleCourse(c.id)}
                 >
                   {done ? '✓ Done' : 'Mark done'}
@@ -120,7 +120,7 @@ export default function Courses() {
                 Open course on Skilljar ↗
               </a>
               <button
-                className={`btn ${!!progress.courses[modalCourse.id] ? 'btn-done' : 'btn-secondary'}`}
+                className={!!progress.courses[modalCourse.id] ? 'btn-done is-done' : 'btn btn-secondary'}
                 onClick={() => toggleCourse(modalCourse.id)}
               >
                 {!!progress.courses[modalCourse.id] ? '✓ Done' : 'Mark done'}

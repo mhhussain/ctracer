@@ -1933,11 +1933,12 @@ code, kbd {
   color: var(--text-2);
   cursor: pointer;
   transition: background var(--t);
+  width: auto;
 }
 .btn-done.is-done {
-  background: var(--emerald);
+  background: var(--ok);
   color: #fff;
-  border-color: var(--emerald);
+  border-color: var(--ok);
 }
 
 .btn-google {
