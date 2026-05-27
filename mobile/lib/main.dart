@@ -20,7 +20,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final storage = StorageService();
   final progressProvider = ProgressProvider(storage);
-  await progressProvider.load();
+  try {
+    await progressProvider.load();
+  } catch (_) {
+    // proceed with empty progress — StorageService will attempt recovery on next write
+  }
 
   runApp(
     MultiProvider(

@@ -1,3 +1,5 @@
+const _absent = Object();
+
 class ProgressModel {
   final Map<String, bool> courses;
   final Map<String, String> projects;
@@ -18,14 +20,14 @@ class ProgressModel {
     Map<String, String>? projects,
     Map<String, bool>? tasks,
     Map<String, bool>? examDay,
-    String? practiceScore,
+    Object? practiceScore = _absent,
   }) {
     return ProgressModel(
       courses: courses ?? this.courses,
       projects: projects ?? this.projects,
       tasks: tasks ?? this.tasks,
       examDay: examDay ?? this.examDay,
-      practiceScore: practiceScore ?? this.practiceScore,
+      practiceScore: identical(practiceScore, _absent) ? this.practiceScore : practiceScore as String?,
     );
   }
 

@@ -25,6 +25,9 @@ class DashboardScreen extends HookWidget {
       orElse: () => kPhases.last,
     );
     final todayTasks = activePhase.tasks.where((t) => !(progress.tasks[t.id] ?? false)).take(4).toList();
+    final allDone = kPhases.every(
+      (p) => p.tasks.every((t) => progress.tasks[t.id] ?? false),
+    );
 
     final allTasks = kPhases.expand((p) => p.tasks).toList();
     final tasksDone = allTasks.where((t) => progress.tasks[t.id] == true).length;
@@ -153,7 +156,12 @@ class DashboardScreen extends HookWidget {
               Text(activePhase.goal, style: const TextStyle(fontSize: 13, color: Color(0xFFB6B6C0))),
               const SizedBox(height: 8),
               if (todayTasks.isEmpty)
-                Text('Phase ${activePhase.num} complete — move to phase ${(activePhase.num + 1).clamp(1, 4)}.', style: const TextStyle(fontSize: 13, color: Color(0xFF7D7D88)))
+                Text(
+                  allDone
+                      ? 'All phases complete — great work!'
+                      : 'Phase ${activePhase.num} complete — move to phase ${(activePhase.num + 1).clamp(1, kPhases.length)}.',
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF7D7D88)),
+                )
               else
                 ...todayTasks.map((t) => CheckboxRow(
                   label: t.label,

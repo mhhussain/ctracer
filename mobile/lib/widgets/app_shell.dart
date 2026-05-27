@@ -7,11 +7,12 @@ class AppShell extends HookWidget {
   const AppShell({super.key, required this.child});
 
   static int _indexForLocation(String location) {
+    if (location.startsWith('/dashboard') || location == '/') return 0;
     if (location.startsWith('/blueprint')) return 1;
     if (location.startsWith('/plan')) return 2;
     if (location.startsWith('/courses')) return 3;
     if (location.startsWith('/profile')) return 4;
-    return 0;
+    return -1;
   }
 
   @override
@@ -23,7 +24,7 @@ class AppShell extends HookWidget {
       backgroundColor: const Color(0xFF0A0A0C),
       body: child,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
+        selectedIndex: currentIndex < 0 ? 0 : currentIndex,
         backgroundColor: const Color(0xFF0F0F12),
         indicatorColor: const Color(0xFF22222B),
         onDestinationSelected: (i) {

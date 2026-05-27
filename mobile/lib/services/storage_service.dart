@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'progress_model.dart';
 
@@ -11,7 +12,8 @@ class StorageService {
     if (raw == null) return const ProgressModel();
     try {
       return ProgressModel.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('StorageService.getProgress failed: $e\n$st');
       return const ProgressModel();
     }
   }

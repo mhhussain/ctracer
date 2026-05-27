@@ -16,9 +16,14 @@ class ProgressProvider extends ChangeNotifier {
   }
 
   Future<void> _update(ProgressModel next) async {
+    try {
+      await _storage.saveProgress(next);
+    } catch (_) {
+      // save failed — do not update in-memory state or notify
+      return;
+    }
     _progress = next;
     notifyListeners();
-    await _storage.saveProgress(next);
   }
 
   Future<void> toggleCourse(String id) => _update(
