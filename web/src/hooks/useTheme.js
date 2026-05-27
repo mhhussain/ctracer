@@ -1,19 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 const KEY = 'ctracer_theme'
 
 export function useTheme() {
-  const [theme, setThemeState] = useState(
-    () => localStorage.getItem(KEY) ?? 'dark'
-  )
+  const [theme, setThemeState] = useState(() => {
+    const t = localStorage.getItem(KEY) ?? 'dark'
+    document.documentElement.dataset.theme = t
+    return t
+  })
 
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    localStorage.setItem(KEY, theme)
-  }, [theme])
+  const setTheme = (t) => {
+    document.documentElement.dataset.theme = t
+    localStorage.setItem(KEY, t)
+    setThemeState(t)
+  }
 
   const toggleTheme = () =>
-    setThemeState((t) => (t === 'dark' ? 'light' : 'dark'))
+    setTheme(theme === 'dark' ? 'light' : 'dark')
 
   return { theme, toggleTheme }
 }
