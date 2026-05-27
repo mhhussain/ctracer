@@ -13,12 +13,12 @@ export default function DomainDeepDive() {
   return (
     <div className="screen-container">
       {/* 1. Domain hero */}
-      <div className="dom-hero" style={{ '--dom-c': domain.color }}>
-        <div className="dom-hero-stripe" />
+      <div className="dom-hero">
+        <div className={`dom-hero-stripe dtag-${domain.color}`} />
         <div>
-          <p className="dom-hero-eyebrow">{domain.code}</p>
+          <p className="dom-hero-eyebrow">D{domain.num} · {domain.weight}%</p>
           <h1 className="dom-hero-title">{domain.name}</h1>
-          <p>{domain.tagline}</p>
+          <p>{domain.blurb}</p>
         </div>
         <div className="dom-hero-r">
           <div className="dh-stat">
