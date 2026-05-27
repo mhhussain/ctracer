@@ -894,18 +894,66 @@ Changes from current:
 
 ---
 
-## 11. What is NOT changing
+## 11. Profile (`web/src/screens/Profile.jsx`)
+
+### 11.1 Problem
+
+`.btn` has `width: 100%` and `.input` has `width: 100%`, so all buttons and inputs expand to fill the entire `screen-container`. The profile screen has no width constraint on its content.
+
+### 11.2 Fix — wrap content in a constrained Card
+
+Wrap the inner content of both states (signed-in and signed-out) in `<Card>` with `style={{ maxWidth: 420 }}`. The `Card` component provides border + background + padding and the inline `maxWidth` stops it from expanding.
+
+**Signed-out state:**
+```jsx
+<div className="screen-container">
+  <h1 className="screen-title">Sign In</h1>
+  <Card style={{ maxWidth: 420 }}>
+    <p className="profile-subtitle">Sign in to sync your progress across devices.</p>
+    <form className="profile-form" onSubmit={handleEmailSignIn}>
+      … inputs, error, submit button …
+    </form>
+    <div className="profile-divider"><span>or</span></div>
+    <button className="btn btn-google" onClick={handleGoogleSignIn}>
+      Sign in with Google
+    </button>
+    <div className="profile-danger-zone">
+      … danger zone content …
+    </div>
+  </Card>
+</div>
+```
+
+**Signed-in state:**
+```jsx
+<div className="screen-container">
+  <h1 className="screen-title">Profile</h1>
+  <Card style={{ maxWidth: 420 }}>
+    <div className="profile-signed-in">
+      … name, email, sign-out button …
+    </div>
+    <div className="profile-danger-zone">
+      … danger zone content …
+    </div>
+  </Card>
+</div>
+```
+
+Add `import Card from '../components/Card'` at the top of the file.
+
+---
+
+## 12. What is NOT changing
 
 - **`index.css`** — no changes needed. All required CSS classes exist.
 - **Dashboard** — confirmed good, no changes.
-- **Profile** — not in scope for this sprint.
 - **Any mobile code** — not in scope.
 - **Data files (`src/data/`)** — not in scope.
 - **Hooks** — not in scope.
 
 ---
 
-## 12. Implementation order
+## 13. Implementation order
 
 Tasks should be implemented in this order to avoid regressions:
 
@@ -916,6 +964,7 @@ Tasks should be implemented in this order to avoid regressions:
 5. DomainDeepDive fixes (self-contained screen)
 6. KeyConcepts fixes (self-contained screen)
 7. ExamDayChecklist fixes (self-contained screen)
-8. Sidebar rewrite (touches shared nav; do last to avoid distraction while fixing screens)
+8. Profile fix (self-contained screen)
+9. Sidebar rewrite (touches shared nav; do last to avoid distraction while fixing screens)
 
 Each task: implement → verify class names match spec → commit.
