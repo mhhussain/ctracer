@@ -742,18 +742,170 @@ Icon goes **after** the text (not before). Remove the `ref-patt-icon` wrapper di
 
 ---
 
-## 10. What is NOT changing
+## 10. ExamDayChecklist (`web/src/screens/ExamDayChecklist.jsx`)
+
+### 10.1 Screen wrapper
+
+`<div className="screen-exam">` → `<div className="screen-container">` to match every other screen.
+
+### 10.2 Section header
+
+Add the shared `sec-head` pattern above the hero card:
+
+```jsx
+<section className="sec">
+  <header className="sec-head">
+    <div>
+      <h2 className="sec-title">Exam day</h2>
+      <p className="sec-desc">One last gut-check before you sit the exam.</p>
+    </div>
+  </header>
+  {/* hero card and exam-cols below */}
+</section>
+```
+
+### 10.3 Hero — add Card + fix class names
+
+Wrap the hero in `Card` and fix all inner class names:
+
+```jsx
+import Card from '../components/Card'
+
+<Card className={`exam-hero${allDone ? ' is-ready' : ''}`}>
+  <div className="exam-hero-l">
+    <div className="exam-hero-eyebrow">Exam logistics</div>
+    <div className="exam-meta">
+      <div className="exam-meta-cell">
+        <div className="emc-l">Duration</div>
+        <div className="emc-v">120 min</div>
+      </div>
+      <div className="exam-meta-cell">
+        <div className="emc-l">Questions</div>
+        <div className="emc-v">60</div>
+      </div>
+      <div className="exam-meta-cell">
+        <div className="emc-l">Passing</div>
+        <div className="emc-v">720 / 1000</div>
+      </div>
+      <div className="exam-meta-cell">
+        <div className="emc-l">Reference</div>
+        <div className="emc-v">None allowed</div>
+      </div>
+    </div>
+  </div>
+  <div className="exam-hero-r">
+    <div className="exam-ready">
+      <div className="exam-ready-pct">
+        {Math.round((doneCount / EXAM_DAY_CHECKLIST.length) * 100)}%
+      </div>
+      <div className="exam-ready-l">{doneCount} / {EXAM_DAY_CHECKLIST.length} ready</div>
+    </div>
+  </div>
+</Card>
+```
+
+Changes from current:
+- `exam-hero-left` → `exam-hero-l`
+- `exam-hero-right` → `exam-hero-r`
+- `exam-meta-grid` → `exam-meta`
+- `exam-meta-item` → `exam-meta-cell`
+- `exam-meta-label` span → `<div className="emc-l">`
+- `exam-meta-val` span → `<div className="emc-v">`
+- `exam-ready-label` → `exam-ready-l`, wrapped in `<div className="exam-ready">`
+
+### 10.4 Body layout — `exam-body` → `exam-cols`
+
+```jsx
+{/* BEFORE */}
+<div className="exam-body">
+
+{/* AFTER */}
+<div className="exam-cols">
+```
+
+### 10.5 Pre-exam readiness card — add Card + fix item structure
+
+```jsx
+<Card className="exam-list">
+  <h3>Pre-exam readiness</h3>
+  <div className="exam-list-body">
+    {EXAM_DAY_CHECKLIST.map((item) => {
+      const isAuto = item.id === 'x1' || item.id === 'x2'
+      const isChecked = checked(item)
+      return (
+        <div key={item.id} className={`exam-row${item.critical ? ' is-critical' : ''}`}>
+          <Checkbox
+            checked={isChecked}
+            onChange={isAuto ? undefined : () => toggleExamDay(item.id)}
+            disabled={isAuto}
+            label={item.label}
+            sub={isAuto ? 'auto-tracked from your progress' : null}
+          />
+          <div className="exam-row-r">
+            <span className={`pill ${item.critical ? 'pill-warn' : 'pill-dim'}`}>
+              {item.critical ? 'Required' : 'Recommended'}
+            </span>
+          </div>
+        </div>
+      )
+    })}
+  </div>
+</Card>
+```
+
+Changes from current:
+- `<div className="exam-list">` → `<Card className="exam-list">`
+- Add `<div className="exam-list-body">` wrapper around items
+- `exam-item` → `exam-row` (with `is-critical` modifier when `item.critical`)
+- Checkbox receives `label={item.label}` and `sub={...}` props directly — remove standalone `exam-item-content`, `exam-item-label`, `exam-item-sub` divs
+- Pill wrapped in `<div className="exam-row-r">`
+- `pill-neutral` → `pill-dim`
+
+### 10.6 What to expect card — add Card + fix list and footer
+
+```jsx
+<Card className="exam-expect">
+  <h3>What to expect</h3>
+  <ul className="expect-list">
+    <li>Questions are scenario-based — no simple recall</li>
+    <li>Expect agentic architecture traps (the hardest domain)</li>
+    <li>MCP primitives are tested heavily — know Tools vs Resources vs Prompts</li>
+    <li>Anti-pattern recognition is a core test skill</li>
+    <li>No reference materials allowed — study the Quick Reference beforehand</li>
+    <li>High scores are achievable — most architects who prepare thoroughly pass on first attempt</li>
+  </ul>
+  <div className="expect-foot">
+    <a className="primary-btn" href={CERT.registerUrl} target="_blank" rel="noopener noreferrer">
+      Register at Skilljar ↗
+    </a>
+    <button className="ghost-btn" onClick={() => navigate('/concepts')}>
+      Open quick reference →
+    </button>
+  </div>
+</Card>
+```
+
+Changes from current:
+- `<div className="exam-expect">` → `<Card className="exam-expect">`
+- `<ul>` → `<ul className="expect-list">`
+- `<div className="exam-expect-foot">` → `<div className="expect-foot">`
+- `<a className="btn btn-secondary">` → `<a className="primary-btn">`
+- `<button className="btn-link">` → `<button className="ghost-btn">`
+
+---
+
+## 11. What is NOT changing
 
 - **`index.css`** — no changes needed. All required CSS classes exist.
 - **Dashboard** — confirmed good, no changes.
-- **ExamDayChecklist, Profile** — not in scope for this sprint.
+- **Profile** — not in scope for this sprint.
 - **Any mobile code** — not in scope.
 - **Data files (`src/data/`)** — not in scope.
 - **Hooks** — not in scope.
 
 ---
 
-## 11. Implementation order
+## 12. Implementation order
 
 Tasks should be implemented in this order to avoid regressions:
 
@@ -763,6 +915,7 @@ Tasks should be implemented in this order to avoid regressions:
 4. Projects fixes (self-contained screen)
 5. DomainDeepDive fixes (self-contained screen)
 6. KeyConcepts fixes (self-contained screen)
-7. Sidebar rewrite (touches shared nav; do last to avoid distraction while fixing screens)
+7. ExamDayChecklist fixes (self-contained screen)
+8. Sidebar rewrite (touches shared nav; do last to avoid distraction while fixing screens)
 
 Each task: implement → verify class names match spec → commit.
