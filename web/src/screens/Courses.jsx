@@ -30,7 +30,7 @@ export default function Courses() {
     <div className="screen-container">
       <h1 className="screen-title">Courses</h1>
 
-      <div className="filter-chips">
+      <div className="filter-row">
         {[
           { key: 'all', label: 'All' },
           { key: 'partner', label: 'Partner Network (required)' },
@@ -52,9 +52,9 @@ export default function Courses() {
           return (
             <div key={c.id} className={`course-card${c.partnerRequired ? ' is-required' : ''}${done ? ' is-done' : ''}`}>
               {c.partnerRequired && (
-                <div className="course-flag">Partner Network · required</div>
+                <div className="card-flag">Partner Network · required</div>
               )}
-              <div className="course-head">
+              <div className="course-top">
                 <h3 className="course-name">{c.name}</h3>
                 <button
                   className={`btn ${done ? 'btn-done' : 'btn-secondary'}`}
@@ -64,11 +64,11 @@ export default function Courses() {
                 </button>
               </div>
               <p className="course-blurb">{c.blurb}</p>
-              <div className="course-pills">
+              <div className="course-meta">
                 <span className="pill pill-neutral">{c.hours}h</span>
                 <span className="pill pill-neutral">{c.level}</span>
               </div>
-              <div className="course-tags">
+              <div className="course-doms">
                 {c.domains.map(did => (
                   <span key={did} onClick={() => navigate(`/domain/${did}`)} style={{ cursor: 'pointer' }}>
                     <DomainTag domain={DOMAIN_MAP[did]} />
@@ -76,10 +76,10 @@ export default function Courses() {
                 ))}
               </div>
               <div className="course-actions">
-                <button className="btn-link" onClick={() => setOpenCourseId(c.id)}>
+                <button className="link-btn" onClick={() => setOpenCourseId(c.id)}>
                   Module list →
                 </button>
-                <a className="btn-link" href={c.url} target="_blank" rel="noopener noreferrer">
+                <a className="link-btn" href={c.url} target="_blank" rel="noopener noreferrer">
                   Open on Skilljar ↗
                 </a>
               </div>
@@ -89,16 +89,15 @@ export default function Courses() {
       </div>
 
       {openCourseId && modalCourse && (
-        <>
-          <div className="modal-veil" onClick={() => setOpenCourseId(null)} />
-          <div className="modal" role="dialog">
+        <div className="modal-veil" onClick={() => setOpenCourseId(null)}>
+          <div className="modal" role="dialog" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <div className="modal-eyebrow">{modalCourse.level} · {modalCourse.hours}h</div>
               <h2 className="modal-title">{modalCourse.name}</h2>
               <p className="modal-blurb">{modalCourse.blurb}</p>
-              <button className="modal-close" onClick={() => setOpenCourseId(null)} aria-label="Close">×</button>
+              <button className="x-btn" onClick={() => setOpenCourseId(null)} aria-label="Close">×</button>
             </div>
-            <div className="modal-tags">
+            <div className="modal-doms">
               {modalCourse.domains.map(did => (
                 <DomainTag key={did} domain={DOMAIN_MAP[did]} />
               ))}
@@ -106,9 +105,9 @@ export default function Courses() {
             </div>
             <div className="modal-modules">
               {modalCourse.modules.map((mod, mi) => (
-                <div key={mi} className="modal-section">
-                  <div className="modal-section-name">{mi + 1}. {mod.name}</div>
-                  <ul className="modal-lessons">
+                <div key={mi}>
+                  <div className="module-name">{mi + 1}. {mod.name}</div>
+                  <ul className="module-lessons">
                     {mod.lessons.map((lesson, li) => (
                       <li key={li}>{lesson}</li>
                     ))}
@@ -117,7 +116,7 @@ export default function Courses() {
               ))}
             </div>
             <div className="modal-foot">
-              <a className="btn-link" href={modalCourse.url} target="_blank" rel="noopener noreferrer">
+              <a className="link-btn" href={modalCourse.url} target="_blank" rel="noopener noreferrer">
                 Open course on Skilljar ↗
               </a>
               <button
@@ -128,7 +127,7 @@ export default function Courses() {
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )

@@ -1924,6 +1924,22 @@ code, kbd {
   color: var(--text);
 }
 
+.btn-done {
+  font-size: .75rem;
+  padding: .25rem .6rem;
+  border-radius: var(--rad-s);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background var(--t);
+}
+.btn-done.is-done {
+  background: var(--emerald);
+  color: #fff;
+  border-color: var(--emerald);
+}
+
 .btn-google {
   background: var(--surface);
   color: var(--text);
