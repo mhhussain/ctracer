@@ -125,7 +125,7 @@ export default function Courses() {
               ))}
             </div>
             <div className="modal-foot">
-              <a className="link-btn" href={modalCourse.url} target="_blank" rel="noopener noreferrer">
+              <a className="ghost-btn-sm" href={modalCourse.url} target="_blank" rel="noopener noreferrer">
                 Open course on Skilljar ↗
               </a>
               <button
