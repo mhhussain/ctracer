@@ -1842,3 +1842,150 @@ code, kbd {
   font-size: 0.75rem;
   color: var(--text-3);
 }
+
+/* =================== Screen container =================== */
+
+.screen-container {
+  padding: var(--pad);
+  max-width: 480px;
+}
+
+.screen-title {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 24px;
+}
+
+/* =================== Form inputs =================== */
+
+.input {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: var(--font-ui);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.input::placeholder {
+  color: var(--text-3);
+}
+
+.input:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+/* =================== Generic btn classes =================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, opacity 0.12s;
+  width: 100%;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #0a0a0c;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-2);
+}
+
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text-2);
+  border: 1px solid var(--border-2);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.btn-google {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-2);
+}
+
+.btn-google:hover {
+  background: var(--surface-2);
+}
+
+/* =================== Profile screen =================== */
+
+.profile-subtitle {
+  font-size: 13px;
+  color: var(--text-3);
+  margin: 0 0 24px;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.profile-error {
+  font-size: 12.5px;
+  color: var(--warn);
+  margin: 0;
+}
+
+.profile-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.profile-divider::before,
+.profile-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-2);
+}
+
+.profile-signed-in {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.profile-email {
+  font-size: 13px;
+  color: var(--text-3);
+  margin: 0 0 16px;
+}
