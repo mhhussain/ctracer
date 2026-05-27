@@ -1,0 +1,457 @@
+# UI Polish Design
+
+**Date:** 2026-05-27
+**Status:** Approved
+**Branch:** `fix/ui-polish` (new branch from `feature/web-app-completion`)
+**Scope:** Fix visual regressions across 5 areas — all CSS classes already exist in `index.css`; every fix is a JSX structural correction only.
+
+---
+
+## Background
+
+After the web-app-completion sprint, several screens were implemented with the wrong CSS class names or wrong DOM structure. The design system CSS in `index.css` is correct and complete — the bugs are entirely in the JSX. No CSS changes are needed unless explicitly noted.
+
+The ground-truth prototype lives in `docs/superpowers/specs/screens-a.jsx`, `screens-b.jsx`, and `components.jsx`.
+
+---
+
+## 1. Shared Pattern: Section Header
+
+Every screen that uses `.screen-container` wraps its content in a `<section className="sec">` with a header. The CSS classes already exist:
+
+```css
+.sec { margin-bottom: 32px; }
+.sec-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; gap: 12px; }
+.sec-title { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.015em; }
+.sec-desc { margin: 4px 0 0; font-size: 13px; color: var(--text-3); }
+```
+
+**Replace** this pattern (currently used on all affected screens):
+```jsx
+<h1 className="screen-title">Screen Name</h1>
+```
+
+**With** this pattern:
+```jsx
+<section className="sec">
+  <header className="sec-head">
+    <div>
+      <h2 className="sec-title">Screen Name</h2>
+      <p className="sec-desc">Desc text here.</p>
+    </div>
+    {/* optional action slot (e.g. filter chips) */}
+  </header>
+  {/* screen content */}
+</section>
+```
+
+The loading state also currently uses `screen-container` + `screen-title` — update it to match.
+
+---
+
+## 2. ExamBlueprint (`web/src/screens/ExamBlueprint.jsx`)
+
+### 2.1 Section header
+
+Replace `<div className="screen-container">` + `<h1 className="screen-title">Exam Blueprint</h1>` with the `.sec` pattern:
+
+- Title: `"Blueprint"`
+- Desc: `"60 questions · 90 minutes · pass at 70%"`
+- No action slot.
+
+### 2.2 Card borders on donut and bars panels
+
+Both `<div className="bp-donut">` and `<div className="bp-bars">` are plain divs with no border/background/padding. Wrap each with the `Card` component:
+
+```jsx
+import Card from '../components/Card'
+
+<Card className="bp-donut"> … </Card>
+<Card className="bp-bars"> … </Card>
+```
+
+### 2.3 Bar row structure (bars overlapping)
+
+Current structure is broken: `bar-lab` is a sibling of `bar-track` but its CSS uses `position: absolute` relative to `bar-track`. Additionally, the row has no `.bar-row-head` wrapper and is missing the `.bars` container div.
+
+**Replace** the entire bars section inside `.bp-bars`:
+
+```jsx
+<div className="bars">
+  {DOMAINS.map((d) => (
+    <div
+      key={d.id}
+      className="bar-row"
+      onMouseEnter={() => setHovered(d.id)}
+      onMouseLeave={() => setHovered(null)}
+    >
+      <div className="bar-row-head">
+        <span className={`dtag dtag-${d.color}`} onClick={() => navigate(`/domain/${d.id}`)}>D{d.num}</span>
+        <span className={`pill ${d.difficulty === 'Hardest' ? 'pill-warn' : 'pill-dim'}`}>{d.difficulty}</span>
+      </div>
+      <div className="bar-track">
+        <div className={`bar-fill dtag-${d.color}`} style={{ width: `${(d.weight / 27) * 100}%` }} />
+        <span className="bar-lab">{d.weight}% · {d.questions} questions</span>
+      </div>
+    </div>
+  ))}
+</div>
+```
+
+Note `bar-lab` is now a **child** of `bar-track` (not a sibling), so `position: absolute` resolves correctly.
+
+### 2.4 Accordion header — pills not grouped
+
+The `.exp-head` grid is `4px auto 1fr auto auto` (5 columns: stripe, dtag, name, pill-group, chevron). Currently, each pill is a direct grid child causing overflow. Wrap all pills in `<span className="exp-meta">` and use `exp-chev` (not a non-existent class) for the chevron:
+
+```jsx
+<button className="exp-head" onClick={() => setExpanded(isOpen ? null : d.id)}>
+  <span className={`exp-stripe dtag-${d.color}`} />
+  <span className={`dtag dtag-${d.color}`}>D{d.num}</span>
+  <span className="exp-name">{d.name}</span>
+  <span className="exp-meta">
+    <span className="pill pill-dim">{d.questions}q</span>
+    <span className="pill pill-dim">{d.weight}%</span>
+    {d.difficulty === 'Hardest' && <span className="pill pill-warn">Hardest</span>}
+  </span>
+  <span className="exp-chev">{isOpen ? '−' : '+'}</span>
+</button>
+```
+
+### 2.5 Accordion body — col-head for section headings
+
+Replace `<h4>Key topics</h4>` and `<h4>Anti-patterns to know</h4>` with `<div className="col-head">`:
+
+```jsx
+<div className="col-head">Key topics</div>
+<div className="col-head">Anti-patterns to know</div>
+```
+
+---
+
+## 3. StudyPlan (`web/src/screens/StudyPlan.jsx`)
+
+### 3.1 Section header
+
+- Title: `"Study plan"`
+- Desc: `"A 3–5 week track for the CCA-F. Click any phase to expand its tasks."`
+- No action slot.
+
+### 3.2 Roadmap card border
+
+Wrap `<div className="roadmap">` with `Card`:
+
+```jsx
+<Card className="roadmap"> … </Card>
+```
+
+### 3.3 Roadmap meta structure
+
+Current: plain `<span>` strings. Replace with label/value div pairs:
+
+```jsx
+<div className="roadmap-meta">
+  <div>
+    <div className="rm-label">Total timeline</div>
+    <div className="rm-value">5 weeks · ~47.5 hours</div>
+  </div>
+  <div>
+    <div className="rm-label">Track</div>
+    <div className="rm-value">CCA-F</div>
+  </div>
+  <div>
+    <div className="rm-label">Approach</div>
+    <div className="rm-value">Sequential phases</div>
+  </div>
+</div>
+```
+
+### 3.4 Roadmap stop class names
+
+- `<div className="rm-dot">` → `<div className="rm-stop-dot">`
+- Wrap week+hours in `<div className="rm-stop-week">`
+- Wrap `<ProgressBar>` in `<div className="rm-stop-bar">`
+
+```jsx
+<button className={`rm-stop${openPhase === phase.id ? ' is-open' : ''}${isPhaseDone(phase) ? ' is-done' : ''}`}
+  onClick={() => setOpenPhase(phase.id)}
+>
+  <div className="rm-stop-dot">{isPhaseDone(phase) ? '✓' : phase.num}</div>
+  <div className="rm-stop-name">{phase.name}</div>
+  <div className="rm-stop-week">{phase.week} · {phase.hours}h</div>
+  <div className="rm-stop-bar">
+    <ProgressBar value={phaseProgress(phase)} color={isPhaseDone(phase) ? 'ok' : 'accent'} height={3} />
+  </div>
+</button>
+```
+
+### 3.5 Phase cards — add Card component
+
+Wrap each `<div className="phase-card ...">` with `Card`:
+
+```jsx
+<Card className={`phase-card${isOpen ? ' is-open' : ''}`}>
+  …
+</Card>
+```
+
+### 3.6 Phase chevron class
+
+`<span className="phase-chevron">` → `<span className="exp-chev">` (reuses the same CSS).
+
+### 3.7 Pill class
+
+`pill-neutral` does not exist. Replace all instances with `pill-dim`.
+
+### 3.8 Task row layout
+
+Current: Checkbox (no label), pill, DomainTag, task-label span, task-hours — 5 direct grid children against a `1fr auto` grid.
+
+Fix:
+1. Pass `label={task.label}` into `<Checkbox>` — the label renders inside the component
+2. Remove the standalone `<span className="task-label">` 
+3. Wrap pill + DomainTag + hours in `<div className="task-meta">`
+
+```jsx
+<div className="task-row">
+  <Checkbox
+    checked={!!progress.tasks[task.id]}
+    onChange={() => toggleTask(task.id)}
+    label={task.label}
+  />
+  <div className="task-meta">
+    <span className={`pill ${task.kind === 'project' ? 'pill-accent' : 'pill-dim'}`}>
+      {task.kind}
+    </span>
+    {task.domain && <DomainTag domain={DOMAIN_MAP[task.domain]} />}
+    <span className="task-hours">{task.hours}h</span>
+  </div>
+</div>
+```
+
+---
+
+## 4. Courses (`web/src/screens/Courses.jsx`)
+
+### 4.1 Section header
+
+- Title: `"Courses"`
+- Desc: `"Free at anthropic.skilljar.com. The four Partner Network courses are the official pre-cert sequence."`
+- Filter chips go in the **action slot** (right side of sec-head, inline with title):
+
+```jsx
+<header className="sec-head">
+  <div>
+    <h2 className="sec-title">Courses</h2>
+    <p className="sec-desc">Free at anthropic.skilljar.com. …</p>
+  </div>
+  <div className="filter-row">
+    {[…].map(…chip buttons…)}
+  </div>
+</header>
+```
+
+### 4.2 Course card border and padding
+
+Add `Card` component (provides `padding: 20px`, `border: 1px solid var(--border)`, `background: var(--surface)`, `border-radius: var(--radius-lg)`):
+
+```jsx
+<Card className={`course-card${c.partnerRequired ? ' is-required' : ''}${done ? ' is-done' : ''}`}>
+```
+
+### 4.3 Pill class
+
+`pill-neutral` → `pill-dim`.
+
+### 4.4 Modal head structure
+
+The x-btn needs to be a flex sibling of the text block. Wrap eyebrow/title/blurb in a `<div>`:
+
+```jsx
+<div className="modal-head">
+  <div>
+    <div className="modal-eyebrow">{modalCourse.level} · {modalCourse.hours}h</div>
+    <h2 className="modal-title">{modalCourse.name}</h2>
+    <p className="modal-blurb">{modalCourse.blurb}</p>
+  </div>
+  <button className="x-btn" onClick={() => setOpenCourseId(null)} aria-label="Close">×</button>
+</div>
+```
+
+### 4.5 Action button style
+
+"Module list →" and "Open on Skilljar ↗" use `link-btn` (no border, no padding). Replace with `ghost-btn-sm` to match the prototype and give them a visible affordance.
+
+---
+
+## 5. Projects (`web/src/screens/Projects.jsx`)
+
+### 5.1 Section header
+
+- Title: `"Projects"`
+- Desc: `"Hands-on builds that reinforce each domain."`
+
+### 5.2 Project card border and padding
+
+Same fix as Courses. Wrap each project card div with `Card`:
+
+```jsx
+<Card className={`proj-card status-${status}`}>
+```
+
+### 5.3 Pill class
+
+Any `pill-neutral` → `pill-dim`.
+
+---
+
+## 6. Sidebar (`web/src/components/Sidebar.jsx`)
+
+This is a full rewrite of `Sidebar.jsx`. The CSS classes required (`sb-brand`, `sb-nav`, `sb-group-label`, `sb-item`, `sb-glyph`, `sb-item-sub`, `sb-domain-dot`, `sb-domain-num`, `sb-domain-w`, `sb-foot`, `sb-foot-row`, `sb-foot-pct`, `sb-foot-meta`) all exist in `index.css`. The old `sidebar-*` classes become unused and can be left in place (no CSS file changes needed).
+
+### 6.1 Brand
+
+```jsx
+<div className="sb-brand">
+  <div className="sb-logo"> … svg checkmark … </div>
+  <div className="sb-brand-text">
+    <div className="sb-brand-1">Study Plan</div>
+    <div className="sb-brand-2">CCA-F</div>
+  </div>
+</div>
+```
+
+The SVG logo from the prototype (accent-colored checkmark on soft background):
+```jsx
+<svg viewBox="0 0 24 24" width="20" height="20">
+  <rect x="2" y="2" width="20" height="20" rx="5" fill="var(--accent)" opacity="0.16" />
+  <path d="M7 12.5 L10 16 L17 8" stroke="var(--accent)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+</svg>
+```
+
+### 6.2 Nav — 3 sections
+
+Import `DOMAINS` from data. Define nav items with glyphs:
+
+```js
+const GENERAL_ITEMS = [
+  { to: '/', label: 'Dashboard', glyph: '◉', end: true },
+  { to: '/blueprint', label: 'Exam Blueprint', glyph: '◐' },
+  { to: '/plan', label: 'Study Plan', glyph: '▤' },
+  { to: '/courses', label: 'Courses', glyph: '▦' },
+  { to: '/projects', label: 'Projects', glyph: '▣' },
+]
+
+const PREP_ITEMS = [
+  { to: '/concepts', label: 'Key Concepts', glyph: '≡' },
+  { to: '/exam-day', label: 'Exam Day', glyph: '★' },
+]
+```
+
+Nav JSX structure:
+```jsx
+<nav className="sb-nav">
+  <div className="sb-group-label">General</div>
+  {GENERAL_ITEMS.map(({ to, label, glyph, end }) => (
+    <NavLink key={to} to={to} end={end}
+      className={({ isActive }) => `sb-item${isActive ? ' is-active' : ''}`}
+    >
+      <span className="sb-glyph">{glyph}</span>
+      <span>{label}</span>
+    </NavLink>
+  ))}
+
+  <div className="sb-group-label">Domain deep dives</div>
+  {DOMAINS.map((d) => (
+    <NavLink key={d.id} to={`/domain/${d.id}`}
+      className={({ isActive }) => `sb-item sb-item-sub${isActive ? ' is-active' : ''}`}
+    >
+      <span className={`sb-domain-dot dtag-${d.color}`} />
+      <span className="sb-domain-num">D{d.num}</span>
+      <span>{d.short}</span>
+      <span className="sb-domain-w">{d.weight}%</span>
+    </NavLink>
+  ))}
+
+  <div className="sb-group-label">Prep finish</div>
+  {PREP_ITEMS.map(({ to, label, glyph }) => (
+    <NavLink key={to} to={to}
+      className={({ isActive }) => `sb-item${isActive ? ' is-active' : ''}`}
+    >
+      <span className="sb-glyph">{glyph}</span>
+      <span>{label}</span>
+    </NavLink>
+  ))}
+
+  {/* Profile at bottom of nav */}
+  <NavLink to="/profile"
+    className={({ isActive }) => `sb-item${isActive ? ' is-active' : ''}`}
+    style={{ marginTop: 'auto' }}
+  >
+    <span className="sb-glyph">👤</span>
+    <span>Profile</span>
+  </NavLink>
+</nav>
+```
+
+### 6.3 Footer — progress + theme toggle
+
+Import `useProgress` and `PHASES` from data. Compute active phase and hours remaining:
+
+```js
+const { progress, stats } = useProgress()
+const activePhase = PHASES.find((p) => p.tasks.some((t) => !progress.tasks[t.id])) ?? PHASES[PHASES.length - 1]
+const hoursLeft = stats.hoursTotal - stats.hoursDone
+```
+
+Footer JSX:
+```jsx
+<div className="sb-foot">
+  <div className="sb-foot-row">
+    <span>Overall</span>
+    <span className="sb-foot-pct">{stats.overall}%</span>
+  </div>
+  <ProgressBar value={stats.overall} color="accent" height={4} />
+  <div className="sb-foot-meta">
+    <span>Phase {activePhase.num}</span>
+    <span>·</span>
+    <span>{activePhase.name}</span>
+    <span>·</span>
+    <span>{hoursLeft}h left</span>
+  </div>
+  <button
+    className="sidebar-theme-btn"
+    onClick={toggleTheme}
+    title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+  >
+    {theme === 'dark' ? '☀' : '🌙'}
+  </button>
+</div>
+```
+
+Note: `sidebar-theme-btn` CSS class is retained (already defined in `index.css`) so the theme toggle button still works without needing a new CSS class.
+
+---
+
+## 7. What is NOT changing
+
+- **`index.css`** — no changes needed. All required CSS classes exist.
+- **Dashboard** — confirmed good, no changes.
+- **DomainDeepDive, KeyConcepts, ExamDayChecklist, Profile** — not in scope for this sprint.
+- **Any mobile code** — not in scope.
+- **Data files (`src/data/`)** — not in scope.
+- **Hooks** — not in scope.
+
+---
+
+## 8. Implementation order
+
+Tasks should be implemented in this order to avoid regressions:
+
+1. ExamBlueprint fixes (self-contained screen)
+2. StudyPlan fixes (self-contained screen)
+3. Courses fixes (self-contained screen)
+4. Projects fixes (self-contained screen)
+5. Sidebar rewrite (touches shared nav; do last to avoid distraction while fixing screens)
+
+Each task: implement → verify class names match spec → commit.
