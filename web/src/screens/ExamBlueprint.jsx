@@ -34,38 +34,38 @@ export default function ExamBlueprint() {
     <div className="screen-container">
       <h1 className="screen-title">Exam Blueprint</h1>
 
-      <div className="bp-top">
+      <div className="bp-grid">
         {/* Left — Donut card */}
         <div className="bp-donut">
-          <svg className="bp-svg" viewBox="0 0 220 220">
+          <svg viewBox="0 0 220 220">
             {slices.map((s) => (
               <path
                 key={s.id}
                 d={arc(s.startAngle, s.endAngle)}
-                className={`bp-slice dtag-${s.color}${hovered === s.id ? ' is-hov' : hovered ? ' is-dim' : ''}`}
+                className={`donut-slice dtag-${s.color}${hovered === s.id ? ' is-hov' : hovered ? ' is-dim' : ''}`}
                 onMouseEnter={() => setHovered(s.id)}
                 onMouseLeave={() => setHovered(null)}
                 onClick={() => setExpanded(s.id)}
               />
             ))}
-            <text x="110" y="106" className="bp-center-num">60</text>
-            <text x="110" y="122" className="bp-center-label">questions</text>
+            <text x="110" y="106" className="donut-c-1">60</text>
+            <text x="110" y="122" className="donut-c-2">questions</text>
           </svg>
 
-          <div className="bp-legend">
+          <div className="donut-legend">
             {DOMAINS.map((d) => (
               <button
                 key={d.id}
-                className={`bp-legend-row${hovered === d.id ? ' is-hov' : ''}`}
+                className={`legend-row${hovered === d.id ? ' is-hov' : ''}`}
                 onClick={() => setExpanded(d.id)}
                 onMouseEnter={() => setHovered(d.id)}
                 onMouseLeave={() => setHovered(null)}
               >
-                <span className={`bp-swatch dtag-${d.color}`} />
-                <span className="bp-legend-tag">D{d.num}</span>
-                <span className="bp-legend-name">{d.short}</span>
-                <span className="bp-legend-weight">{d.weight}%</span>
-                <span className="bp-legend-q">{d.questions}q</span>
+                <span className={`legend-sw dtag-${d.color}`} />
+                <span className="legend-num">D{d.num}</span>
+                <span className="legend-name">{d.short}</span>
+                <span className="legend-w">{d.weight}%</span>
+                <span className="legend-q">{d.questions}q</span>
               </button>
             ))}
           </div>
@@ -73,12 +73,12 @@ export default function ExamBlueprint() {
 
         {/* Right — Weight & difficulty card */}
         <div className="bp-bars">
-          <h2 className="bp-bars-heading">Weight & difficulty</h2>
-          <p className="bp-bars-sub">Domain 1 is the largest and the hardest — allocate time accordingly.</p>
+          <h3>Weight & difficulty</h3>
+          <p>Domain 1 is the largest and the hardest — allocate time accordingly.</p>
           {DOMAINS.map((d) => (
             <div
               key={d.id}
-              className="bp-bar-row"
+              className="bar-row"
               onMouseEnter={() => setHovered(d.id)}
               onMouseLeave={() => setHovered(null)}
             >
