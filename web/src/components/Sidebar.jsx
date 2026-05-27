@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useTheme } from '../hooks/useTheme'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', end: true },
@@ -13,6 +14,8 @@ const NAV_ITEMS = [
 ]
 
 export default function Sidebar() {
+  const { theme, toggleTheme } = useTheme()
+
   return (
     <nav className="sidebar">
       <div className="sidebar-brand">
@@ -30,6 +33,15 @@ export default function Sidebar() {
             {label}
           </NavLink>
         ))}
+      </div>
+      <div className="sidebar-footer">
+        <button
+          className="sidebar-theme-btn"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? '☀' : '🌙'}
+        </button>
       </div>
     </nav>
   )
