@@ -12,22 +12,43 @@ export default function DomainDeepDive() {
 
   return (
     <div className="screen-container">
+      <section className="sec">
+        <header className="sec-head">
+          <div>
+            <h2 className="sec-title">{domain.name}</h2>
+            <p className="sec-desc">D{domain.num} of 5 · {domain.weight}% of exam</p>
+          </div>
+        </header>
+      </section>
+
       {/* 1. Domain hero */}
       <div className="dom-hero">
         <div className={`dom-hero-stripe dtag-${domain.color}`} />
-        <div>
-          <p className="dom-hero-eyebrow">D{domain.num} · {domain.weight}%</p>
+        <div className="dom-hero-l">
+          <div className="dom-hero-eyebrow">
+            <span className={`legend-sw dtag-${domain.color}`} />
+            <span>Domain {domain.num} of 5</span>
+            {domain.difficulty === 'Hardest' && (
+              <span className="pill pill-warn">Hardest domain</span>
+            )}
+          </div>
           <h1 className="dom-hero-title">{domain.name}</h1>
-          <p>{domain.blurb}</p>
+          <p className="dom-hero-blurb">{domain.blurb}</p>
         </div>
         <div className="dom-hero-r">
           <div className="dh-stat">
-            <span className="dh-stat-v">{domain.weight}%</span>
-            <span className="dh-stat-l">Weight</span>
+            <div className="dh-stat-v">
+              {domain.weight}<span className="dh-stat-u">%</span>
+            </div>
+            <div className="dh-stat-l">of exam</div>
           </div>
           <div className="dh-stat">
-            <span className="dh-stat-v">{domain.questions}</span>
-            <span className="dh-stat-l">Questions</span>
+            <div className="dh-stat-v">{domain.questions}</div>
+            <div className="dh-stat-l">questions</div>
+          </div>
+          <div className="dh-stat">
+            <div className="dh-stat-v">P{domain.phase}</div>
+            <div className="dh-stat-l">study phase</div>
           </div>
         </div>
       </div>
@@ -41,7 +62,8 @@ export default function DomainDeepDive() {
           <ul className="topic-list">
             {domain.topics.map(t => (
               <li key={t.name}>
-                <strong>{t.name}</strong> — {t.desc}
+                <span className="topic-name">{t.name}</span>
+                <span className="topic-desc"> — {t.desc}</span>
               </li>
             ))}
           </ul>
@@ -75,14 +97,16 @@ export default function DomainDeepDive() {
           <div className="link-block">
             <div className="lb-head">Phase</div>
             <button className="lb-row" onClick={() => navigate('/plan')}>
-              Phase {domain.phase} — study plan →
+              <span className="lb-row-l">Phase {domain.phase} — study plan</span>
+              <span className="lb-row-r">→</span>
             </button>
           </div>
           <div className="link-block">
             <div className="lb-head">Courses</div>
             {COURSES.filter(c => c.domains.includes(domain.id)).map(c => (
               <button key={c.id} className="lb-row" onClick={() => navigate('/courses')}>
-                {c.name} →
+                <span className="lb-row-l">{c.name}</span>
+                <span className="lb-row-r">{c.hours}h →</span>
               </button>
             ))}
           </div>
@@ -90,7 +114,8 @@ export default function DomainDeepDive() {
             <div className="lb-head">Projects</div>
             {PROJECTS.filter(p => p.domains.includes(domain.id)).map(p => (
               <button key={p.id} className="lb-row" onClick={() => navigate('/projects')}>
-                {p.name} →
+                <span className="lb-row-l">{p.name}</span>
+                <span className="lb-row-r">{p.complexity} →</span>
               </button>
             ))}
           </div>
