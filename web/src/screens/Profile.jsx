@@ -15,9 +15,13 @@ export default function Profile() {
 
   async function handleReset(userArg) {
     setResetState('resetting')
-    await resetProgress(userArg)
-    setResetState('done')
-    setTimeout(() => setResetState('idle'), 1500)
+    try {
+      await resetProgress(userArg)
+      setResetState('done')
+      setTimeout(() => setResetState('idle'), 1500)
+    } catch {
+      setResetState('idle')
+    }
   }
 
   if (user) {
