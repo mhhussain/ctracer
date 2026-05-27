@@ -83,14 +83,14 @@ export default function ExamBlueprint() {
               onMouseLeave={() => setHovered(null)}
             >
               <span className={`dtag dtag-${d.color}`} onClick={() => navigate(`/domain/${d.id}`)}> D{d.num}</span>
-              <span className={`pill ${d.difficulty === 'Hardest' ? 'pill-warn' : 'pill-neutral'}`}>{d.difficulty}</span>
-              <div className="bp-bar-track">
+              <span className={`pill ${d.difficulty === 'Hardest' ? 'pill-warn' : 'pill-dim'}`}>{d.difficulty}</span>
+              <div className="bar-track">
                 <div
-                  className={`bp-bar-fill dtag-${d.color}`}
+                  className={`bar-fill dtag-${d.color}`}
                   style={{ width: `${(d.weight / 27) * 100}%` }}
                 />
               </div>
-              <span className="bp-bar-pct">{d.weight}%</span>
+              <span className="bar-lab">{d.weight}%</span>
             </div>
           ))}
         </div>
@@ -106,10 +106,10 @@ export default function ExamBlueprint() {
                 <span className={`exp-stripe dtag-${d.color}`} />
                 <span className={`dtag dtag-${d.color}`}>D{d.num}</span>
                 <span className="exp-name">{d.name}</span>
-                <span className="pill pill-neutral">{d.questions}q</span>
-                <span className="pill pill-neutral">{d.weight}%</span>
+                <span className="pill pill-dim">{d.questions}q</span>
+                <span className="pill pill-dim">{d.weight}%</span>
                 {d.difficulty === 'Hardest' && <span className="pill pill-warn">Hardest</span>}
-                <span className="exp-chevron">{isOpen ? '−' : '+'}</span>
+                <span className="exp-chev">{isOpen ? '−' : '+'}</span>
               </button>
               {isOpen && (
                 <div className="exp-body">
@@ -117,7 +117,7 @@ export default function ExamBlueprint() {
                   <div className="exp-cols">
                     <div>
                       <h4>Key topics</h4>
-                      <ul className="exp-topics">
+                      <ul className="topic-list">
                         {d.topics.map(t => (
                           <li key={t.name}><strong>{t.name}</strong> — {t.desc}</li>
                         ))}
@@ -125,12 +125,12 @@ export default function ExamBlueprint() {
                     </div>
                     <div>
                       <h4>Anti-patterns to know</h4>
-                      <ul className="exp-anti">
+                      <ul className="anti-list">
                         {d.antiPatterns.map((ap, i) => (
-                          <li key={i}><span className="ref-x">✕</span>{ap}</li>
+                          <li key={i}><span className="anti-x">✕</span>{ap}</li>
                         ))}
                       </ul>
-                      <button className="btn-link" onClick={() => navigate(`/domain/${d.id}`)}>
+                      <button className="link-btn" onClick={() => navigate(`/domain/${d.id}`)}>
                         Open domain deep dive →
                       </button>
                     </div>
