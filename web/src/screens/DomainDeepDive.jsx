@@ -13,35 +13,21 @@ export default function DomainDeepDive() {
   return (
     <div className="screen-container">
       {/* 1. Domain hero */}
-      <div className="dom-hero">
-        <div className={`dom-hero-stripe dtag-${domain.color}`} />
-        <div className="dom-hero-content">
-          <div className="dom-hero-left">
-            <div className="dom-eyebrow">
-              <span className={`dtag dtag-${domain.color}`}>D{domain.num}</span>
-              <span>Domain {domain.num} of 5</span>
-              {domain.difficulty === 'Hardest' && (
-                <span className="pill pill-warn">Hardest domain</span>
-              )}
-            </div>
-            <h2 className="dom-hero-name">{domain.name}</h2>
-            <p className="dom-hero-blurb">{domain.blurb}</p>
+      <div className="dom-hero" style={{ '--dom-c': domain.color }}>
+        <div className="dom-hero-stripe" />
+        <div>
+          <p className="dom-hero-eyebrow">{domain.code}</p>
+          <h1 className="dom-hero-title">{domain.name}</h1>
+          <p>{domain.tagline}</p>
+        </div>
+        <div className="dom-hero-r">
+          <div className="dh-stat">
+            <span className="dh-stat-v">{domain.weight}%</span>
+            <span className="dh-stat-l">Weight</span>
           </div>
-          <div className="dom-hero-right">
-            <div className="dom-stats">
-              <div className="dom-stat">
-                <span className="dom-stat-val">{domain.weight}%</span>
-                <span className="dom-stat-label">Exam weight</span>
-              </div>
-              <div className="dom-stat">
-                <span className="dom-stat-val">{domain.questions}</span>
-                <span className="dom-stat-label">Questions</span>
-              </div>
-              <div className="dom-stat">
-                <span className="dom-stat-val">Phase {domain.phase}</span>
-                <span className="dom-stat-label">Study phase</span>
-              </div>
-            </div>
+          <div className="dh-stat">
+            <span className="dh-stat-v">{domain.questions}</span>
+            <span className="dh-stat-l">Questions</span>
           </div>
         </div>
       </div>
@@ -49,10 +35,10 @@ export default function DomainDeepDive() {
       {/* 2. Four-card body grid */}
       <div className="dom-grid">
         {/* Key topics card */}
-        <div className="dom-card dom-topics">
+        <div className="card dom-topics">
           <h3>Key topics</h3>
-          <p className="dom-card-sub">Every bullet below is fair game on the exam…</p>
-          <ul className="dom-topic-list">
+          <p>Every bullet below is fair game on the exam…</p>
+          <ul className="topic-list">
             {domain.topics.map(t => (
               <li key={t.name}>
                 <strong>{t.name}</strong> — {t.desc}
@@ -62,9 +48,9 @@ export default function DomainDeepDive() {
         </div>
 
         {/* What to build card */}
-        <div className="dom-card dom-build">
+        <div className="card dom-build">
           <h3>What to build</h3>
-          <ol className="dom-build-list">
+          <ol className="build-list">
             {domain.build.map((b, i) => (
               <li key={i}>{b}</li>
             ))}
@@ -72,38 +58,38 @@ export default function DomainDeepDive() {
         </div>
 
         {/* Anti-patterns card */}
-        <div className="dom-card dom-anti">
+        <div className="card dom-anti">
           <h3>Anti-patterns to know</h3>
-          <ul className="dom-anti-list">
+          <ul className="anti-list">
             {domain.antiPatterns.map((ap, i) => (
               <li key={i}>
-                <span className="ref-x">✕</span>{ap}
+                <span className="anti-x">✕</span>{ap}
               </li>
             ))}
           </ul>
         </div>
 
         {/* Where to study card */}
-        <div className="dom-card dom-links">
+        <div className="card dom-links">
           <h3>Where to study</h3>
-          <div className="dom-links-group">
-            <div className="dom-links-heading">Phase</div>
-            <button className="dom-link-row" onClick={() => navigate('/plan')}>
+          <div className="link-block">
+            <div className="lb-head">Phase</div>
+            <button className="lb-row" onClick={() => navigate('/plan')}>
               Phase {domain.phase} — study plan →
             </button>
           </div>
-          <div className="dom-links-group">
-            <div className="dom-links-heading">Courses</div>
+          <div className="link-block">
+            <div className="lb-head">Courses</div>
             {COURSES.filter(c => c.domains.includes(domain.id)).map(c => (
-              <button key={c.id} className="dom-link-row" onClick={() => navigate('/courses')}>
+              <button key={c.id} className="lb-row" onClick={() => navigate('/courses')}>
                 {c.name} →
               </button>
             ))}
           </div>
-          <div className="dom-links-group">
-            <div className="dom-links-heading">Projects</div>
+          <div className="link-block">
+            <div className="lb-head">Projects</div>
             {PROJECTS.filter(p => p.domains.includes(domain.id)).map(p => (
-              <button key={p.id} className="dom-link-row" onClick={() => navigate('/projects')}>
+              <button key={p.id} className="lb-row" onClick={() => navigate('/projects')}>
                 {p.name} →
               </button>
             ))}
@@ -116,7 +102,7 @@ export default function DomainDeepDive() {
         <button className="dom-nav-btn" onClick={() => navigate(`/domain/${prev.id}`)}>
           ← <span className="dom-nav-eyebrow">D{prev.num}</span> {prev.short}
         </button>
-        <button className="dom-nav-btn dom-nav-next" onClick={() => navigate(`/domain/${next.id}`)}>
+        <button className="dom-nav-btn dom-nav-r" onClick={() => navigate(`/domain/${next.id}`)}>
           {next.short} <span className="dom-nav-eyebrow">D{next.num}</span> →
         </button>
       </div>
