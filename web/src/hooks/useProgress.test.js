@@ -14,6 +14,7 @@ vi.mock('./useAuth', () => ({ useAuth: (...args) => mockUseAuth(...args) }))
 
 // Mock storage — controlled subscription
 vi.mock('../lib/storage', () => ({
+  DEFAULT_PROGRESS: { courses: {}, projects: {}, tasks: {}, exam_day: {}, practiceScore: null },
   subscribeToProgress: (...args) => mockSubscribe(...args),
   saveProgress: (...args) => mockSave(...args),
   clearProgress: vi.fn(),

@@ -3,7 +3,7 @@ import { db } from './firebase'
 
 const KEY = 'ctracer_progress'
 
-const DEFAULT_PROGRESS = {
+export const DEFAULT_PROGRESS = {
   courses: {},
   projects: {},
   tasks: {},

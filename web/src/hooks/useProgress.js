@@ -1,18 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { saveProgress, subscribeToProgress } from '../lib/storage'
+import { DEFAULT_PROGRESS, saveProgress, subscribeToProgress } from '../lib/storage'
 import { COURSES, PHASES, PROJECTS } from '../data/index'
 import { useAuth } from './useAuth'
 
 const ALL_TASKS = PHASES.flatMap((p) => p.tasks)
 const HOURS_TOTAL = Math.round(ALL_TASKS.reduce((s, t) => s + t.hours, 0) * 10) / 10
-
-const DEFAULT_PROGRESS = {
-  courses: {},
-  projects: {},
-  tasks: {},
-  exam_day: {},
-  practiceScore: null,
-}
 
 export function useProgress() {
   const { user } = useAuth()

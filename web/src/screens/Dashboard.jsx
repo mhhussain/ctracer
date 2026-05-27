@@ -37,7 +37,8 @@ function RingProgress({ pct }) {
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { progress, toggleTask, stats } = useProgress()
+  const { progress, loading, toggleTask, stats } = useProgress()
+  if (loading) return null
 
   const activePhase =
     PHASES.find((p) => p.tasks.some((t) => !progress.tasks[t.id])) ??
