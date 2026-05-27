@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { subscribeToProgress, saveProgress, clearProgress } from './storage'
+import { subscribeToProgress, saveProgress, clearProgress, resetProgress, DEFAULT_PROGRESS } from './storage'
 
 const DEFAULT = { courses: {}, projects: {}, tasks: {}, exam_day: {}, practiceScore: null }
 
@@ -103,5 +103,33 @@ describe('storage — Firestore path (user set)', () => {
     saveProgress(mockUser, progress)
     expect(mockDoc).toHaveBeenCalledWith({}, 'users', 'uid-123', 'progress', 'data')
     expect(mockSetDoc).toHaveBeenCalledWith('mock-ref', progress, { merge: true })
+  })
+})
+
+describe('resetProgress', () => {
+  const mockUser = { uid: 'uid-123' }
+
+  beforeEach(() => {
+    clearProgress()
+    vi.clearAllMocks()
+  })
+
+  it('clears localStorage and does not call setDoc when user is null', async () => {
+    saveProgress(null, { ...DEFAULT, courses: { c1: true } })
+    await resetProgress(null)
+    expect(mockSetDoc).not.toHaveBeenCalled()
+    const cb = vi.fn()
+    subscribeToProgress(null, cb)
+    expect(cb).toHaveBeenCalledWith(DEFAULT)
+  })
+
+  it('clears localStorage and calls setDoc with DEFAULT_PROGRESS when user is set', async () => {
+    saveProgress(null, { ...DEFAULT, courses: { c1: true } })
+    await resetProgress(mockUser)
+    expect(mockDoc).toHaveBeenCalledWith({}, 'users', 'uid-123', 'progress', 'data')
+    expect(mockSetDoc).toHaveBeenCalledWith('mock-ref', DEFAULT_PROGRESS)
+    const cb = vi.fn()
+    subscribeToProgress(null, cb)
+    expect(cb).toHaveBeenCalledWith(DEFAULT)
   })
 })

@@ -50,3 +50,10 @@ export function saveProgress(user, progress) {
 export function clearProgress() {
   localStorage.removeItem(KEY)
 }
+
+export async function resetProgress(user) {
+  clearProgress() // always wipe localStorage
+  if (!user) return
+  const ref = doc(db, 'users', user.uid, 'progress', 'data')
+  await setDoc(ref, DEFAULT_PROGRESS) // overwrite Firestore with clean defaults
+}

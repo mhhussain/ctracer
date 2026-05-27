@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { signInWithEmail, signInWithGoogle, signOut } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
+import { resetProgress } from '../lib/storage'
 
 export default function Profile() {
   const { user, loading } = useAuth()
@@ -8,8 +9,20 @@ export default function Profile() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [resetState, setResetState] = useState('idle')
 
   if (loading) return null
+
+  async function handleReset(userArg) {
+    setResetState('resetting')
+    try {
+      await resetProgress(userArg)
+      setResetState('done')
+      setTimeout(() => setResetState('idle'), 1500)
+    } catch {
+      setResetState('idle')
+    }
+  }
 
   if (user) {
     return (
@@ -21,6 +34,34 @@ export default function Profile() {
           <button className="btn btn-secondary" onClick={signOut}>
             Sign out
           </button>
+        </div>
+
+        <div className="profile-danger-zone">
+          <p className="profile-danger-label">Danger zone</p>
+          {resetState === 'idle' && (
+            <button className="btn btn-secondary" onClick={() => setResetState('confirm')}>
+              Reset progress
+            </button>
+          )}
+          {resetState === 'confirm' && (
+            <>
+              <p className="profile-reset-warning">
+                ⚠ This will clear all courses, tasks, and project status. This cannot be undone.
+              </p>
+              <button className="btn btn-secondary" onClick={() => setResetState('idle')}>
+                Cancel
+              </button>
+              <button className="btn btn-destructive" onClick={() => handleReset(user)}>
+                Yes, reset everything
+              </button>
+            </>
+          )}
+          {resetState === 'resetting' && (
+            <button className="btn btn-destructive" disabled>
+              Resetting…
+            </button>
+          )}
+          {resetState === 'done' && <p>✓ Progress reset.</p>}
         </div>
       </div>
     )
@@ -89,6 +130,34 @@ export default function Profile() {
       <button className="btn btn-google" onClick={handleGoogleSignIn}>
         Sign in with Google
       </button>
+
+      <div className="profile-danger-zone">
+        <p className="profile-danger-label">Danger zone</p>
+        {resetState === 'idle' && (
+          <button className="btn btn-secondary" onClick={() => setResetState('confirm')}>
+            Reset progress
+          </button>
+        )}
+        {resetState === 'confirm' && (
+          <>
+            <p className="profile-reset-warning">
+              ⚠ This will clear all courses, tasks, and project status. This cannot be undone.
+            </p>
+            <button className="btn btn-secondary" onClick={() => setResetState('idle')}>
+              Cancel
+            </button>
+            <button className="btn btn-destructive" onClick={() => handleReset(null)}>
+              Yes, reset everything
+            </button>
+          </>
+        )}
+        {resetState === 'resetting' && (
+          <button className="btn btn-destructive" disabled>
+            Resetting…
+          </button>
+        )}
+        {resetState === 'done' && <p>✓ Progress reset.</p>}
+      </div>
     </div>
   )
 }

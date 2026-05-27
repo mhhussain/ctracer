@@ -1847,7 +1847,7 @@ code, kbd {
 
 .screen-container {
   padding: var(--pad);
-  max-width: 480px;
+  max-width: 1280px;
 }
 
 .screen-title {
@@ -1924,6 +1924,23 @@ code, kbd {
   color: var(--text);
 }
 
+.btn-done {
+  font-size: .75rem;
+  padding: .25rem .6rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background .12s;
+  width: auto;
+}
+.btn-done.is-done {
+  background: var(--ok);
+  color: #fff;
+  border-color: var(--ok);
+}
+
 .btn-google {
   background: var(--surface);
   color: var(--text);
@@ -1988,4 +2005,66 @@ code, kbd {
   font-size: 13px;
   color: var(--text-3);
   margin: 0 0 16px;
+}
+
+/* Profile reset */
+.profile-danger-zone {
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.profile-danger-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 0.75rem;
+}
+
+.profile-reset-warning {
+  font-size: 0.85rem;
+  color: var(--warn);
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.btn-destructive {
+  background: oklch(0.65 0.18 20);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-destructive:hover {
+  background: oklch(0.6 0.2 20);
+}
+
+/* Sidebar theme toggle */
+.sidebar-footer {
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-theme-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: var(--text-3);
+  padding: 0.25rem;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.sidebar-theme-btn:hover {
+  color: var(--text);
+  background: var(--surface-2);
 }

@@ -121,4 +121,26 @@ describe('useProgress', () => {
     act(() => result.current.toggleCourse('c1'))
     expect(mockSave).toHaveBeenCalledWith(mockUser, expect.objectContaining({ courses: { c1: true } }))
   })
+
+  it('cycleProject cycles through not_started → in_progress → complete → not_started', async () => {
+    setupSubscribe()
+    const { result } = renderHook(() => useProgress())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // First cycle: not_started → in_progress
+    act(() => result.current.cycleProject('pr1'))
+    expect(result.current.progress.projects.pr1).toBe('in_progress')
+    expect(result.current.stats.projectsWip).toBe(1)
+
+    // Second cycle: in_progress → complete
+    act(() => result.current.cycleProject('pr1'))
+    expect(result.current.progress.projects.pr1).toBe('complete')
+    expect(result.current.stats.projectsDone).toBe(1)
+    expect(result.current.stats.projectsWip).toBe(0)
+
+    // Third cycle: complete → not_started
+    act(() => result.current.cycleProject('pr1'))
+    expect(result.current.progress.projects.pr1).toBe('not_started')
+    expect(result.current.stats.projectsDone).toBe(0)
+  })
 })
