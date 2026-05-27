@@ -564,18 +564,196 @@ Each link row button should have left label + right metadata:
 
 ---
 
-## 9. What is NOT changing
+## 9. KeyConcepts (`web/src/screens/KeyConcepts.jsx`)
+
+The screen has 9 class-name / DOM-structure mismatches against the prototype. No CSS changes needed — all target classes exist.
+
+### 9.1 Screen wrapper — add base `screen` class
+
+```jsx
+{/* BEFORE */}
+<div className="ref-screen">
+
+{/* AFTER */}
+<div className="screen ref-screen">
+```
+
+### 9.2 Toolrow — wrong class name + pill class
+
+```jsx
+{/* BEFORE */}
+<div className="ref-banner">
+  <span className="pill pill-warn">…</span>
+  <span className="pill pill-neutral">…</span>
+</div>
+
+{/* AFTER */}
+<div className="ref-toolrow">
+  <span className="pill pill-warn">No docs allowed during exam</span>
+  <span className="pill pill-dim">Print to PDF · ⌘P</span>
+</div>
+```
+
+### 9.3 Card borders — add `Card` component to all 6 cards
+
+Every `<div className="ref-card ref-*">` needs to become `<Card className="ref-card ref-*">`. `Card` provides the border, background, and base padding.
+
+Add `import Card from '../components/Card'` at the top.
+
+Affected cards: `ref-api`, `ref-models`, `ref-mcp`, `ref-cc`, `ref-patt`, `ref-anti`.
+
+### 9.4 Card header — wrong class names
+
+Every card has `<div className="ref-eyebrow">N</div><h3 className="ref-heading">Title</h3>`. Replace with:
+
+```jsx
+<div className="ref-card-head">
+  <span className="ref-num">01</span>
+  <h3>API essentials</h3>
+</div>
+```
+
+Remove `ref-heading` className from all `<h3>` elements (the CSS targets `ref-card-head h3` directly).
+
+### 9.5 Model table — wrong class + column structure
+
+```jsx
+{/* BEFORE */}
+<table className="ref-table">
+  …
+  <tr>
+    <td>{m.name}</td>
+    <td>{m.cost}</td>
+    <td>{m.speed}</td>
+    <td>{m.use}</td>
+    <td>{m.ctx}</td>
+  </tr>
+
+{/* AFTER */}
+<table className="ref-tab">
+  …
+  <tr key={m.name}>
+    <td><strong>{m.name}</strong></td>
+    <td>{m.cost}</td>
+    <td>{m.speed}</td>
+    <td className="ref-use">{m.use}</td>
+    <td><code>{m.ctx}</code></td>
+  </tr>
+```
+
+### 9.6 MCP card — all wrong class names
+
+```jsx
+{/* BEFORE */}
+<div className="ref-mcp-grid">
+  <div className="ref-mcp-cell">
+    <div className="ref-mcp-name">{m.name}</div>
+    <div className="ref-mcp-controller">{m.controller}</div>
+    <div className="ref-mcp-use">{m.use}</div>
+  </div>
+</div>
+
+{/* AFTER */}
+<div className="mcp-row">
+  {REFERENCE.mcp.map(({ name, controller, use }) => (
+    <div key={name} className="mcp-cell">
+      <div className="mcp-title">{name}</div>
+      <div className="mcp-ctrl">{controller}</div>
+      <div className="mcp-use">{use}</div>
+    </div>
+  ))}
+</div>
+```
+
+### 9.7 Claude Code hierarchy — completely different structure
+
+Replace the entire interior of the `ref-cc` card body with:
+
+```jsx
+<div className="cc-grid">
+  <div>
+    <div className="col-head">CLAUDE.md levels</div>
+    <ul className="cc-list">
+      {REFERENCE.claudeCode.claudeMd.map(({ level, path, desc }) => (
+        <li key={level}>
+          <div className="cc-l1"><strong>{level}</strong> <code>{path}</code></div>
+          <div className="cc-l2">{desc}</div>
+        </li>
+      ))}
+    </ul>
+  </div>
+  <div>
+    <div className="col-head">Settings files</div>
+    <ul className="cc-list">
+      {REFERENCE.claudeCode.settings.map(({ k, v }) => (
+        <li key={k}>
+          <div className="cc-l1"><code>{k}</code></div>
+          <div className="cc-l2">{v}</div>
+        </li>
+      ))}
+    </ul>
+    <div className="col-head mt-12">Hook types</div>
+    <div className="kbd-row">
+      {REFERENCE.claudeCode.hooks.map((hookName) => (
+        <kbd key={hookName} className="kbd">{hookName}</kbd>
+      ))}
+    </div>
+  </div>
+</div>
+```
+
+Key differences from current: `ref-cc-cols` → `cc-grid`; `ref-cc-section-title` → `col-head`; items in a `cc-list` `<ul>` with `cc-l1`/`cc-l2` divs; `<strong>` + `<code>` inline in `cc-l1`; hooks use `kbd-row` wrapper; spacing between settings title and hooks uses `className="col-head mt-12"` (not a `--spaced` modifier).
+
+### 9.8 Patterns card — wrong class names + icon placement
+
+```jsx
+{/* BEFORE */}
+<div className="ref-patt-grid">
+  <div className="ref-patt-cell">
+    <div className="ref-patt-icon"><PatternIcon name={name} /></div>
+    <div className="ref-patt-name">{name}</div>
+    <div className="ref-patt-desc">{desc}</div>
+  </div>
+</div>
+
+{/* AFTER */}
+<div className="patt-grid">
+  {REFERENCE.patterns.map(({ name, desc }) => (
+    <div key={name} className="patt-cell">
+      <div className="patt-title">{name}</div>
+      <div className="patt-desc">{desc}</div>
+      <PatternIcon name={name} />
+    </div>
+  ))}
+</div>
+```
+
+Icon goes **after** the text (not before). Remove the `ref-patt-icon` wrapper div.
+
+### 9.9 Anti-patterns list — wrong class name
+
+```jsx
+{/* BEFORE */}
+<ul className="ref-anti-list">
+
+{/* AFTER */}
+<ul className="anti-list anti-list-compact">
+```
+
+---
+
+## 10. What is NOT changing
 
 - **`index.css`** — no changes needed. All required CSS classes exist.
 - **Dashboard** — confirmed good, no changes.
-- **KeyConcepts, ExamDayChecklist, Profile** — not in scope for this sprint.
+- **ExamDayChecklist, Profile** — not in scope for this sprint.
 - **Any mobile code** — not in scope.
 - **Data files (`src/data/`)** — not in scope.
 - **Hooks** — not in scope.
 
 ---
 
-## 10. Implementation order
+## 11. Implementation order
 
 Tasks should be implemented in this order to avoid regressions:
 
@@ -584,6 +762,7 @@ Tasks should be implemented in this order to avoid regressions:
 3. Courses fixes (self-contained screen)
 4. Projects fixes (self-contained screen)
 5. DomainDeepDive fixes (self-contained screen)
-6. Sidebar rewrite (touches shared nav; do last to avoid distraction while fixing screens)
+6. KeyConcepts fixes (self-contained screen)
+7. Sidebar rewrite (touches shared nav; do last to avoid distraction while fixing screens)
 
 Each task: implement → verify class names match spec → commit.
