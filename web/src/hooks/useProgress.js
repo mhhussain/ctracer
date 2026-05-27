@@ -6,6 +6,12 @@ import { useAuth } from './useAuth'
 const ALL_TASKS = PHASES.flatMap((p) => p.tasks)
 const HOURS_TOTAL = Math.round(ALL_TASKS.reduce((s, t) => s + t.hours, 0) * 10) / 10
 
+const STATUS_CYCLE = {
+  not_started: 'in_progress',
+  in_progress: 'complete',
+  complete: 'not_started',
+}
+
 export function useProgress() {
   const { user } = useAuth()
   const [progress, setProgress] = useState(DEFAULT_PROGRESS)
@@ -46,6 +52,17 @@ export function useProgress() {
     [update],
   )
 
+  const cycleProject = useCallback(
+    (id) => update((p) => ({
+      ...p,
+      projects: {
+        ...p.projects,
+        [id]: STATUS_CYCLE[p.projects[id]] ?? 'in_progress',
+      },
+    })),
+    [update],
+  )
+
   const toggleExamDay = useCallback(
     (id) => update((p) => ({ ...p, exam_day: { ...p.exam_day, [id]: !p.exam_day[id] } })),
     [update],
@@ -72,6 +89,7 @@ export function useProgress() {
     toggleCourse,
     toggleTask,
     setProject,
+    cycleProject,
     toggleExamDay,
     setPracticeScore,
     stats: {
