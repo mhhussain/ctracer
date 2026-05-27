@@ -437,14 +437,145 @@ Note: `sidebar-theme-btn` CSS class is retained (already defined in `index.css`)
 
 - **`index.css`** — no changes needed. All required CSS classes exist.
 - **Dashboard** — confirmed good, no changes.
-- **DomainDeepDive, KeyConcepts, ExamDayChecklist, Profile** — not in scope for this sprint.
+- **KeyConcepts, ExamDayChecklist, Profile** — not in scope for this sprint.
 - **Any mobile code** — not in scope.
 - **Data files (`src/data/`)** — not in scope.
 - **Hooks** — not in scope.
 
 ---
 
-## 8. Implementation order
+---
+
+## 8. DomainDeepDive (`web/src/screens/DomainDeepDive.jsx`)
+
+### 8.1 Screen-level header
+
+Add a `sec-head` above the `dom-hero` for title consistency. The desc is dynamic per domain:
+
+```jsx
+<section className="sec">
+  <header className="sec-head">
+    <div>
+      <h2 className="sec-title">{domain.name}</h2>
+      <p className="sec-desc">D{domain.num} of 5 · {domain.weight}% of exam</p>
+    </div>
+  </header>
+  {/* dom-hero and dom-grid below */}
+</section>
+```
+
+### 8.2 Hero eyebrow — add colored icon + pill
+
+Replace the plain `<p className="dom-hero-eyebrow">`:
+
+```jsx
+{/* BEFORE */}
+<p className="dom-hero-eyebrow">D{domain.num} · {domain.weight}%</p>
+
+{/* AFTER */}
+<div className="dom-hero-eyebrow">
+  <span className={`legend-sw dtag-${domain.color}`} />
+  <span>Domain {domain.num} of 5</span>
+  {domain.difficulty === 'Hardest' && (
+    <span className="pill pill-warn">Hardest domain</span>
+  )}
+</div>
+```
+
+### 8.3 Hero middle column — add `dom-hero-l` class and `dom-hero-blurb`
+
+```jsx
+{/* BEFORE */}
+<div>
+  …eyebrow, title, blurb…
+  <p>{domain.blurb}</p>
+</div>
+
+{/* AFTER */}
+<div className="dom-hero-l">
+  …eyebrow, title…
+  <p className="dom-hero-blurb">{domain.blurb}</p>
+</div>
+```
+
+### 8.4 Hero stats — add third stat + weight unit suffix
+
+Add study phase as a third `dh-stat` block, and split the weight value from the "%" unit using `dh-stat-u`:
+
+```jsx
+<div className="dom-hero-r">
+  <div className="dh-stat">
+    <div className="dh-stat-v">
+      {domain.weight}<span className="dh-stat-u">%</span>
+    </div>
+    <div className="dh-stat-l">of exam</div>
+  </div>
+  <div className="dh-stat">
+    <div className="dh-stat-v">{domain.questions}</div>
+    <div className="dh-stat-l">questions</div>
+  </div>
+  <div className="dh-stat">
+    <div className="dh-stat-v">P{domain.phase}</div>
+    <div className="dh-stat-l">study phase</div>
+  </div>
+</div>
+```
+
+### 8.5 Topic list — use CSS span classes instead of `<strong>`
+
+```jsx
+{/* BEFORE */}
+<li key={t.name}><strong>{t.name}</strong> — {t.desc}</li>
+
+{/* AFTER */}
+<li key={t.name}>
+  <span className="topic-name">{t.name}</span>
+  <span className="topic-desc"> — {t.desc}</span>
+</li>
+```
+
+### 8.6 `lb-row` — add inner `lb-row-l` / `lb-row-r` structure
+
+Each link row button should have left label + right metadata:
+
+```jsx
+{/* Phase */}
+<button className="lb-row" onClick={() => navigate('/plan')}>
+  <span className="lb-row-l">Phase {domain.phase} — study plan</span>
+  <span className="lb-row-r">→</span>
+</button>
+
+{/* Courses */}
+{COURSES.filter(c => c.domains.includes(domain.id)).map(c => (
+  <button key={c.id} className="lb-row" onClick={() => navigate('/courses')}>
+    <span className="lb-row-l">{c.name}</span>
+    <span className="lb-row-r">{c.hours}h →</span>
+  </button>
+))}
+
+{/* Projects */}
+{PROJECTS.filter(p => p.domains.includes(domain.id)).map(p => (
+  <button key={p.id} className="lb-row" onClick={() => navigate('/projects')}>
+    <span className="lb-row-l">{p.name}</span>
+    <span className="lb-row-r">{p.complexity} →</span>
+  </button>
+))}
+```
+
+---
+
+## 9. What is NOT changing
+
+- **`index.css`** — no changes needed. All required CSS classes exist.
+- **Dashboard** — confirmed good, no changes.
+- **KeyConcepts, ExamDayChecklist, Profile** — not in scope for this sprint.
+- **Any mobile code** — not in scope.
+- **Data files (`src/data/`)** — not in scope.
+- **Hooks** — not in scope.
+
+---
+
+## 10. Implementation order
 
 Tasks should be implemented in this order to avoid regressions:
 
@@ -452,6 +583,7 @@ Tasks should be implemented in this order to avoid regressions:
 2. StudyPlan fixes (self-contained screen)
 3. Courses fixes (self-contained screen)
 4. Projects fixes (self-contained screen)
-5. Sidebar rewrite (touches shared nav; do last to avoid distraction while fixing screens)
+5. DomainDeepDive fixes (self-contained screen)
+6. Sidebar rewrite (touches shared nav; do last to avoid distraction while fixing screens)
 
 Each task: implement → verify class names match spec → commit.
