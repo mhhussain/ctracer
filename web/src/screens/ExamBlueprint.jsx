@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DOMAINS } from '../data/index'
+import Card from '../components/Card'
 
 function arc(startDeg, endDeg, outerR = 88, innerR = 56, cx = 110, cy = 110) {
   const toRad = (deg) => (deg * Math.PI) / 180
@@ -32,11 +33,17 @@ export default function ExamBlueprint() {
 
   return (
     <div className="screen-container">
-      <h1 className="screen-title">Exam Blueprint</h1>
+      <section className="sec">
+        <header className="sec-head">
+          <div>
+            <h2 className="sec-title">Blueprint</h2>
+            <p className="sec-desc">60 questions · 90 minutes · pass at 70%</p>
+          </div>
+        </header>
 
       <div className="bp-grid">
         {/* Left — Donut card */}
-        <div className="bp-donut">
+        <Card className="bp-donut">
           <svg viewBox="0 0 220 220">
             {slices.map((s) => (
               <path
@@ -69,31 +76,35 @@ export default function ExamBlueprint() {
               </button>
             ))}
           </div>
-        </div>
+        </Card>
 
         {/* Right — Weight & difficulty card */}
-        <div className="bp-bars">
+        <Card className="bp-bars">
           <h3>Weight & difficulty</h3>
           <p>Domain 1 is the largest and the hardest — allocate time accordingly.</p>
-          {DOMAINS.map((d) => (
-            <div
-              key={d.id}
-              className="bar-row"
-              onMouseEnter={() => setHovered(d.id)}
-              onMouseLeave={() => setHovered(null)}
-            >
-              <span className={`dtag dtag-${d.color}`} onClick={() => navigate(`/domain/${d.id}`)}> D{d.num}</span>
-              <span className={`pill ${d.difficulty === 'Hardest' ? 'pill-warn' : 'pill-dim'}`}>{d.difficulty}</span>
-              <div className="bar-track">
-                <div
-                  className={`bar-fill dtag-${d.color}`}
-                  style={{ width: `${(d.weight / 27) * 100}%` }}
-                />
+          <div className="bars">
+            {DOMAINS.map((d) => (
+              <div
+                key={d.id}
+                className="bar-row"
+                onMouseEnter={() => setHovered(d.id)}
+                onMouseLeave={() => setHovered(null)}
+              >
+                <div className="bar-row-head">
+                  <span className={`dtag dtag-${d.color}`} onClick={() => navigate(`/domain/${d.id}`)}>D{d.num}</span>
+                  <span className={`pill ${d.difficulty === 'Hardest' ? 'pill-warn' : 'pill-dim'}`}>{d.difficulty}</span>
+                </div>
+                <div className="bar-track">
+                  <div
+                    className={`bar-fill dtag-${d.color}`}
+                    style={{ width: `${(d.weight / 27) * 100}%` }}
+                  />
+                  <span className="bar-lab">{d.weight}% · {d.questions} questions</span>
+                </div>
               </div>
-              <span className="bar-lab">{d.weight}%</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </Card>
       </div>
 
       {/* Expandable domain cards */}
@@ -106,9 +117,11 @@ export default function ExamBlueprint() {
                 <span className={`exp-stripe dtag-${d.color}`} />
                 <span className={`dtag dtag-${d.color}`}>D{d.num}</span>
                 <span className="exp-name">{d.name}</span>
-                <span className="pill pill-dim">{d.questions}q</span>
-                <span className="pill pill-dim">{d.weight}%</span>
-                {d.difficulty === 'Hardest' && <span className="pill pill-warn">Hardest</span>}
+                <span className="exp-meta">
+                  <span className="pill pill-dim">{d.questions}q</span>
+                  <span className="pill pill-dim">{d.weight}%</span>
+                  {d.difficulty === 'Hardest' && <span className="pill pill-warn">Hardest</span>}
+                </span>
                 <span className="exp-chev">{isOpen ? '−' : '+'}</span>
               </button>
               {isOpen && (
@@ -116,7 +129,7 @@ export default function ExamBlueprint() {
                   <p className="exp-blurb">{d.blurb}</p>
                   <div className="exp-cols">
                     <div>
-                      <h4>Key topics</h4>
+                      <div className="col-head">Key topics</div>
                       <ul className="topic-list">
                         {d.topics.map(t => (
                           <li key={t.name}><strong>{t.name}</strong> — {t.desc}</li>
@@ -124,7 +137,7 @@ export default function ExamBlueprint() {
                       </ul>
                     </div>
                     <div>
-                      <h4>Anti-patterns to know</h4>
+                      <div className="col-head">Anti-patterns to know</div>
                       <ul className="anti-list">
                         {d.antiPatterns.map((ap, i) => (
                           <li key={i}><span className="anti-x">✕</span>{ap}</li>
@@ -141,6 +154,7 @@ export default function ExamBlueprint() {
           )
         })}
       </div>
+      </section>
     </div>
   )
 }
