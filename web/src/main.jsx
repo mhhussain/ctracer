@@ -1,9 +1,13 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import Dashboard from './screens/Dashboard.jsx';
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import './index.css'
+import App from './App'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <Dashboard />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>
-);
+)
