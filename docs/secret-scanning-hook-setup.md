@@ -138,62 +138,48 @@ Claude Code hooks are shell commands defined in `.claude/settings.json` (project
 
 ### Setup
 
-Add this to `.claude/settings.json` (create the file if it doesn't exist):
+1. Create `.claude/hooks/check-secrets.js`:
 
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash -c 'echo \"$CLAUDE_TOOL_INPUT\" | python3 -c \"\nimport sys, json, re, os\ntry:\n    data = json.load(sys.stdin)\n    content = data.get(\\\"new_string\\\", \\\"\\\") or data.get(\\\"content\\\", \\\"\\\")\n    patterns = [\n        (r\\\"AIzaSy[A-Za-z0-9_-]{33}\\\", \\\"Firebase API key\\\"),\n        (r\\\"[0-9]{1}:[0-9]{12}:web:[a-f0-9]{16}\\\", \\\"Firebase App ID\\\"),\n    ]\n    for pattern, label in patterns:\n        if re.search(pattern, content):\n            print(f\\\"BLOCKED: {label} detected in file write. Use a placeholder or env var instead.\\\")\n            sys.exit(1)\nexcept Exception:\n    pass\n\"'"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+```js
+#!/usr/bin/env node
+const readline = require('readline')
 
-**Note:** The inline Python in the command above is compact for JSON compatibility. For readability and easier maintenance, extract it to a script instead:
-
-1. Create `.claude/hooks/check-secrets.py`:
-
-```python
-#!/usr/bin/env python3
-import sys
-import json
-import re
-
-PATTERNS = [
-    (r'AIzaSy[A-Za-z0-9_-]{33}', 'Firebase/Google API key'),
-    (r'\d{1}:\d{12}:web:[a-f0-9]{16}', 'Firebase App ID'),
-    (r'AAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140}', 'FCM server key'),
-    (r'-----BEGIN (RSA |EC )?PRIVATE KEY-----', 'Private key'),
+const PATTERNS = [
+  { regex: /AIzaSy[A-Za-z0-9_-]{33}/, label: 'Firebase/Google API key' },
+  { regex: /\d{1}:\d{12}:web:[a-f0-9]{16}/, label: 'Firebase App ID' },
+  { regex: /AAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140}/, label: 'FCM server key' },
+  { regex: /-----BEGIN (RSA |EC )?PRIVATE KEY-----/, label: 'Private key' },
 ]
 
-try:
-    data = json.load(sys.stdin)
-    content = data.get('new_string', '') or data.get('content', '')
-    file_path = data.get('file_path', '')
+let raw = ''
+const rl = readline.createInterface({ input: process.stdin })
+rl.on('line', (line) => { raw += line })
+rl.on('close', () => {
+  try {
+    const data = JSON.parse(raw)
+    const content = data.new_string || data.content || ''
+    const filePath = data.file_path || ''
 
-    # Skip checking .env.local itself — it's gitignored and is supposed to hold these values
-    if file_path.endswith('.env.local') or file_path.endswith('.env'):
-        sys.exit(0)
+    // Skip .env.local — it's gitignored and is supposed to hold these values
+    if (filePath.endsWith('.env.local') || filePath.endsWith('.env')) {
+      process.exit(0)
+    }
 
-    for pattern, label in PATTERNS:
-        if re.search(pattern, content):
-            print(f'BLOCKED: {label} detected in write to {file_path}')
-            print('Use a placeholder in docs or an env var reference in code.')
-            sys.exit(1)
-except Exception:
-    pass  # Don't block on script errors
+    for (const { regex, label } of PATTERNS) {
+      if (regex.test(content)) {
+        console.error(`BLOCKED: ${label} detected in write to ${filePath}`)
+        console.error('Use a placeholder in docs or an env var reference in code.')
+        process.exit(1)
+      }
+    }
+  } catch {
+    // Don't block on script errors
+  }
+  process.exit(0)
+})
 ```
 
-2. Update `.claude/settings.json` to reference the script:
+2. Add this to `.claude/settings.json` (create if it doesn't exist):
 
 ```json
 {
@@ -204,7 +190,7 @@ except Exception:
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/check-secrets.py"
+            "command": "node .claude/hooks/check-secrets.js"
           }
         ]
       }
