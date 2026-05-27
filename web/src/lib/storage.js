@@ -19,7 +19,11 @@ export function getProgress() {
 }
 
 export function saveProgress(progress) {
-  localStorage.setItem(KEY, JSON.stringify(progress))
+  try {
+    localStorage.setItem(KEY, JSON.stringify(progress))
+  } catch {
+    // quota exceeded or private browsing — in-memory state is still updated
+  }
 }
 
 export function clearProgress() {

@@ -169,10 +169,16 @@ export default function Dashboard() {
           <p className="today-goal">{activePhase.goal}</p>
           <div className="today-list">
             {todayTasks.length === 0 ? (
-              <div className="today-empty">
-                Phase {activePhase.num} complete — open the study plan to start phase{' '}
-                {Math.min(activePhase.num + 1, 4)}.
-              </div>
+              activePhase.num < PHASES.length ? (
+                <div className="today-empty">
+                  Phase {activePhase.num} complete — open the study plan to start phase{" "}
+                  {activePhase.num + 1}.
+                </div>
+              ) : (
+                <div className="today-empty">
+                  All phases complete — you're fully prepared. Review or book the exam!
+                </div>
+              )
             ) : (
               todayTasks.map((t) => (
                 <Checkbox

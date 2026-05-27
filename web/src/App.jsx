@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Dashboard from './screens/Dashboard'
 import ExamBlueprint from './screens/ExamBlueprint'
@@ -27,6 +27,7 @@ export default function App() {
           <Route path="/exam-day" element={<ExamDayChecklist />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/mobile" element={<MobileDownload />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </div>
