@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-const readline = require('readline')
+const fs = require('fs')
+const path = require('path')
 
 const PATTERNS = [
   { regex: /AIzaSy[A-Za-z0-9_-]{33}/, label: 'Firebase/Google API key' },
@@ -8,10 +9,14 @@ const PATTERNS = [
   { regex: /-----BEGIN (RSA |EC )?PRIVATE KEY-----/, label: 'Private key' },
 ]
 
+const logFile = path.join('.claude', 'session.log')
+
 let raw = ''
-const rl = readline.createInterface({ input: process.stdin })
-rl.on('line', (line) => { raw += line })
-rl.on('close', () => {
+process.stdin.setEncoding('utf8')
+process.stdin.on('data', (chunk) => { raw += chunk })
+process.stdin.on('end', () => {
+  const timestamp = new Date().toISOString()
+
   try {
     const data = JSON.parse(raw)
     const input = data.tool_input || {}
@@ -25,13 +30,22 @@ rl.on('close', () => {
 
     for (const { regex, label } of PATTERNS) {
       if (regex.test(content)) {
-        console.error(`BLOCKED: ${label} detected in write to ${filePath}`)
-        console.error('Use a placeholder in docs or an env var reference in code.')
-        process.exit(1)
+        fs.appendFileSync(logFile, `[${timestamp}] CHECK-SECRETS: BLOCKED ${label} in ${filePath}\n`)
+        // Must output JSON with permissionDecision:"deny" and exit 0 to hard-block
+        console.log(JSON.stringify({
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            permissionDecision: 'deny',
+            permissionDecisionReason: `${label} detected in ${path.basename(filePath)}. Use a placeholder in docs or an env var reference in code.`,
+          },
+        }))
+        process.exit(0)
       }
     }
-  } catch {
-    // Don't block on script errors
+
+    fs.appendFileSync(logFile, `[${timestamp}] CHECK-SECRETS: clean — ${filePath}\n`)
+  } catch (e) {
+    fs.appendFileSync(logFile, `[${timestamp}] CHECK-SECRETS: error — ${e.message}\n`)
   }
   process.exit(0)
 })

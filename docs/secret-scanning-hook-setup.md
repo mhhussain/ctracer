@@ -138,6 +138,8 @@ Claude Code hooks are shell commands defined in `.claude/settings.json` (project
 
 ### Setup
 
+**Important:** To hard-block a PreToolUse tool call, the hook must output a JSON object with `permissionDecision: "deny"` to stdout and **exit 0**. Exiting non-zero is treated as a hook error and does not block the tool.
+
 1. Create `.claude/hooks/check-secrets.js`:
 
 ```js
@@ -168,9 +170,16 @@ rl.on('close', () => {
 
     for (const { regex, label } of PATTERNS) {
       if (regex.test(content)) {
-        console.error(`BLOCKED: ${label} detected in write to ${filePath}`)
-        console.error('Use a placeholder in docs or an env var reference in code.')
-        process.exit(1)
+        // To hard-block a PreToolUse hook, output permissionDecision:"deny" JSON
+        // and exit 0. Exiting non-zero does NOT block — it is treated as a hook error.
+        console.log(JSON.stringify({
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            permissionDecision: 'deny',
+            permissionDecisionReason: `${label} detected in ${path.basename(filePath)}. Use a placeholder in docs or an env var reference in code.`,
+          },
+        }))
+        process.exit(0)
       }
     }
   } catch {
