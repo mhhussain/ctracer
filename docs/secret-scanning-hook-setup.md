@@ -157,8 +157,9 @@ rl.on('line', (line) => { raw += line })
 rl.on('close', () => {
   try {
     const data = JSON.parse(raw)
-    const content = data.new_string || data.content || ''
-    const filePath = data.file_path || ''
+    const input = data.tool_input || {}
+    const content = input.new_string || input.content || ''
+    const filePath = input.file_path || ''
 
     // Skip .env.local — it's gitignored and is supposed to hold these values
     if (filePath.endsWith('.env.local') || filePath.endsWith('.env')) {
