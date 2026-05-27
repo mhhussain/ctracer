@@ -1,3 +1,6 @@
+import { doc, onSnapshot, setDoc } from 'firebase/firestore'
+import { db } from './firebase'
+
 const KEY = 'ctracer_progress'
 
 const DEFAULT_PROGRESS = {
@@ -8,7 +11,7 @@ const DEFAULT_PROGRESS = {
   practiceScore: null,
 }
 
-export function getProgress() {
+function getLocalProgress() {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return { ...DEFAULT_PROGRESS }
@@ -18,12 +21,30 @@ export function getProgress() {
   }
 }
 
-export function saveProgress(progress) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(progress))
-  } catch {
-    // quota exceeded or private browsing — in-memory state is still updated
+export function subscribeToProgress(user, callback) {
+  if (!user) {
+    callback(getLocalProgress())
+    return () => {}
   }
+  const ref = doc(db, 'users', user.uid, 'progress', 'data')
+  return onSnapshot(ref, (snap) => {
+    callback(snap.exists() ? { ...DEFAULT_PROGRESS, ...snap.data() } : { ...DEFAULT_PROGRESS })
+  })
+}
+
+export function saveProgress(user, progress) {
+  if (!user) {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(progress))
+    } catch {
+      // quota exceeded or private browsing — in-memory state is still updated
+    }
+    return
+  }
+  const ref = doc(db, 'users', user.uid, 'progress', 'data')
+  setDoc(ref, progress, { merge: true }).catch(() => {
+    // Firestore has built-in offline persistence; this catch is a safety net only
+  })
 }
 
 export function clearProgress() {
