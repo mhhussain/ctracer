@@ -874,10 +874,11 @@ code, kbd {
   pointer-events: none;
 }
 .donut-c-1 {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 600;
   font-family: var(--font-mono);
   letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 .donut-c-2 {
   font-size: 11px;
@@ -885,6 +886,7 @@ code, kbd {
   font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  line-height: 1.2;
 }
 .donut-slice {
   fill: currentColor;
@@ -2025,6 +2027,10 @@ code, kbd {
   color: var(--warn);
   margin-bottom: 0.75rem;
   line-height: 1.5;
+}
+
+.btn-secondary + .btn-destructive {
+  margin-left: 12px;
 }
 
 .btn-destructive {
