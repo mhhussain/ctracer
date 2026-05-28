@@ -5,7 +5,7 @@ import { useProgress } from '../hooks/useProgress'
 import Card from '../components/Card'
 import DomainTag from '../components/DomainTag'
 
-const DOMAIN_MAP = Object.fromEntries(DOMAINS.map(d => [d.id, d]))
+const DOMAIN_MAP = Object.fromEntries(DOMAINS.map((d) => [d.id, d]))
 
 export default function Courses() {
   const { progress, toggleCourse } = useProgress()
@@ -19,13 +19,13 @@ export default function Courses() {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  const filtered = COURSES.filter(c => {
+  const filtered = COURSES.filter((c) => {
     if (filter === 'partner') return c.partnerRequired === true
     if (filter === 'other') return c.partnerRequired === false
     return true
   })
 
-  const modalCourse = COURSES.find(c => c.id === openCourseId)
+  const modalCourse = COURSES.find((c) => c.id === openCourseId)
 
   return (
     <div className="screen-container">
@@ -54,17 +54,21 @@ export default function Courses() {
       </section>
 
       <div className="course-grid">
-        {filtered.map(c => {
+        {filtered.map((c) => {
           const done = !!progress.courses[c.id]
           return (
-            <Card key={c.id} className={`course-card${c.partnerRequired ? ' is-required' : ''}${done ? ' is-done' : ''}`}>
+            <Card
+              key={c.id}
+              className={`course-card${c.partnerRequired ? ' is-required' : ''}${done ? ' is-done' : ''}`}
+            >
               {c.partnerRequired && (
                 <div className="card-flag">Partner Network · required</div>
               )}
               <div className="course-top">
                 <h3 className="course-name">{c.name}</h3>
+                {/* toggle-done: purpose-built small button, not the full-width btn class */}
                 <button
-                  className={done ? 'btn-done is-done' : 'btn btn-secondary'}
+                  className={`toggle-done${done ? ' is-done' : ''}`}
                   onClick={() => toggleCourse(c.id)}
                 >
                   {done ? '✓ Done' : 'Mark done'}
@@ -76,10 +80,14 @@ export default function Courses() {
                 <span className="pill pill-dim">{c.level}</span>
               </div>
               <div className="course-doms">
-                {c.domains.map(did => (
-                  <span key={did} onClick={() => navigate(`/domain/${did}`)} style={{ cursor: 'pointer' }}>
+                {c.domains.map((did) => (
+                  <button
+                    key={did}
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                    onClick={() => navigate(`/domain/${did}`)}
+                  >
                     <DomainTag domain={DOMAIN_MAP[did]} />
-                  </span>
+                  </button>
                 ))}
               </div>
               <div className="course-actions">
@@ -107,15 +115,20 @@ export default function Courses() {
               <button className="x-btn" onClick={() => setOpenCourseId(null)} aria-label="Close">×</button>
             </div>
             <div className="modal-doms">
-              {modalCourse.domains.map(did => (
+              {modalCourse.domains.map((did) => (
                 <DomainTag key={did} domain={DOMAIN_MAP[did]} />
               ))}
-              {modalCourse.partnerRequired && <span className="pill pill-warn">Partner Network required</span>}
+              {modalCourse.partnerRequired && (
+                <span className="pill pill-warn">Partner Network required</span>
+              )}
             </div>
             <div className="modal-modules">
               {modalCourse.modules.map((mod, mi) => (
                 <div key={mi}>
-                  <div className="module-name">{mi + 1}. {mod.name}</div>
+                  <div className="module-head">
+                    <span className="module-i">{String(mi + 1).padStart(2, '0')}</span>
+                    <span className="module-name">{mod.name}</span>
+                  </div>
                   <ul className="module-lessons">
                     {mod.lessons.map((lesson, li) => (
                       <li key={li}>{lesson}</li>
@@ -129,7 +142,7 @@ export default function Courses() {
                 Open course on Skilljar ↗
               </a>
               <button
-                className={!!progress.courses[modalCourse.id] ? 'btn-done is-done' : 'btn btn-secondary'}
+                className={`toggle-done${!!progress.courses[modalCourse.id] ? ' is-done' : ''}`}
                 onClick={() => toggleCourse(modalCourse.id)}
               >
                 {!!progress.courses[modalCourse.id] ? '✓ Done' : 'Mark done'}
