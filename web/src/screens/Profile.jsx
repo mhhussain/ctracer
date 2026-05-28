@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { signInWithEmail, signInWithGoogle, signOut } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 import { resetProgress } from '../lib/storage'
+import Card from '../components/Card'
 
 export default function Profile() {
   const { user, loading } = useAuth()
@@ -28,40 +29,44 @@ export default function Profile() {
     return (
       <div className="screen-container">
         <h1 className="screen-title">Profile</h1>
-        <div className="profile-signed-in">
-          <p className="profile-name">{user.displayName || user.email}</p>
-          <p className="profile-email">{user.displayName ? user.email : null}</p>
-          <button className="btn btn-secondary" onClick={signOut}>
-            Sign out
-          </button>
-        </div>
+        <div style={{ maxWidth: 420 }}>
+          <Card>
+            <div className="profile-signed-in">
+              <p className="profile-name">{user.displayName || user.email}</p>
+              <p className="profile-email">{user.displayName ? user.email : null}</p>
+              <button className="btn btn-secondary" onClick={signOut}>
+                Sign out
+              </button>
+            </div>
 
-        <div className="profile-danger-zone">
-          <p className="profile-danger-label">Danger zone</p>
-          {resetState === 'idle' && (
-            <button className="btn btn-secondary" onClick={() => setResetState('confirm')}>
-              Reset progress
-            </button>
-          )}
-          {resetState === 'confirm' && (
-            <>
-              <p className="profile-reset-warning">
-                ⚠ This will clear all courses, tasks, and project status. This cannot be undone.
-              </p>
-              <button className="btn btn-secondary" onClick={() => setResetState('idle')}>
-                Cancel
-              </button>
-              <button className="btn btn-destructive" onClick={() => handleReset(user)}>
-                Yes, reset everything
-              </button>
-            </>
-          )}
-          {resetState === 'resetting' && (
-            <button className="btn btn-destructive" disabled>
-              Resetting…
-            </button>
-          )}
-          {resetState === 'done' && <p>✓ Progress reset.</p>}
+            <div className="profile-danger-zone">
+              <p className="profile-danger-label">Danger zone</p>
+              {resetState === 'idle' && (
+                <button className="btn btn-secondary" onClick={() => setResetState('confirm')}>
+                  Reset progress
+                </button>
+              )}
+              {resetState === 'confirm' && (
+                <>
+                  <p className="profile-reset-warning">
+                    ⚠ This will clear all courses, tasks, and project status. This cannot be undone.
+                  </p>
+                  <button className="btn btn-secondary" onClick={() => setResetState('idle')}>
+                    Cancel
+                  </button>
+                  <button className="btn btn-destructive" onClick={() => handleReset(user)}>
+                    Yes, reset everything
+                  </button>
+                </>
+              )}
+              {resetState === 'resetting' && (
+                <button className="btn btn-destructive" disabled>
+                  Resetting…
+                </button>
+              )}
+              {resetState === 'done' && <p>✓ Progress reset.</p>}
+            </div>
+          </Card>
         </div>
       </div>
     )
@@ -96,67 +101,71 @@ export default function Profile() {
   return (
     <div className="screen-container">
       <h1 className="screen-title">Sign In</h1>
-      <p className="profile-subtitle">Sign in to sync your progress across devices.</p>
+      <div style={{ maxWidth: 420 }}>
+        <Card>
+          <p className="profile-subtitle">Sign in to sync your progress across devices.</p>
 
-      <form className="profile-form" onSubmit={handleEmailSignIn}>
-        <input
-          className="input"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          required
-          autoComplete="email"
-        />
-        <input
-          className="input"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-          autoComplete="current-password"
-        />
-        {error && <p className="profile-error">{error}</p>}
-        <button className="btn btn-primary" type="submit" disabled={submitting || !email.trim() || !password.trim()}>
-          {submitting ? 'Signing in…' : 'Sign in'}
-        </button>
-      </form>
-
-      <div className="profile-divider">
-        <span>or</span>
-      </div>
-
-      <button className="btn btn-google" onClick={handleGoogleSignIn}>
-        Sign in with Google
-      </button>
-
-      <div className="profile-danger-zone">
-        <p className="profile-danger-label">Danger zone</p>
-        {resetState === 'idle' && (
-          <button className="btn btn-secondary" onClick={() => setResetState('confirm')}>
-            Reset progress
-          </button>
-        )}
-        {resetState === 'confirm' && (
-          <>
-            <p className="profile-reset-warning">
-              ⚠ This will clear all courses, tasks, and project status. This cannot be undone.
-            </p>
-            <button className="btn btn-secondary" onClick={() => setResetState('idle')}>
-              Cancel
+          <form className="profile-form" onSubmit={handleEmailSignIn}>
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              required
+              autoComplete="email"
+            />
+            <input
+              className="input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              required
+              autoComplete="current-password"
+            />
+            {error && <p className="profile-error">{error}</p>}
+            <button className="btn btn-primary" type="submit" disabled={submitting || !email.trim() || !password.trim()}>
+              {submitting ? 'Signing in…' : 'Sign in'}
             </button>
-            <button className="btn btn-destructive" onClick={() => handleReset(null)}>
-              Yes, reset everything
-            </button>
-          </>
-        )}
-        {resetState === 'resetting' && (
-          <button className="btn btn-destructive" disabled>
-            Resetting…
+          </form>
+
+          <div className="profile-divider">
+            <span>or</span>
+          </div>
+
+          <button className="btn btn-google" onClick={handleGoogleSignIn}>
+            Sign in with Google
           </button>
-        )}
-        {resetState === 'done' && <p>✓ Progress reset.</p>}
+
+          <div className="profile-danger-zone">
+            <p className="profile-danger-label">Danger zone</p>
+            {resetState === 'idle' && (
+              <button className="btn btn-secondary" onClick={() => setResetState('confirm')}>
+                Reset progress
+              </button>
+            )}
+            {resetState === 'confirm' && (
+              <>
+                <p className="profile-reset-warning">
+                  ⚠ This will clear all courses, tasks, and project status. This cannot be undone.
+                </p>
+                <button className="btn btn-secondary" onClick={() => setResetState('idle')}>
+                  Cancel
+                </button>
+                <button className="btn btn-destructive" onClick={() => handleReset(null)}>
+                  Yes, reset everything
+                </button>
+              </>
+            )}
+            {resetState === 'resetting' && (
+              <button className="btn btn-destructive" disabled>
+                Resetting…
+              </button>
+            )}
+            {resetState === 'done' && <p>✓ Progress reset.</p>}
+          </div>
+        </Card>
       </div>
     </div>
   )

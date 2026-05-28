@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PROJECTS, DOMAINS } from '../data/index.js'
 import DomainTag from '../components/DomainTag.jsx'
+import Card from '../components/Card'
 import { useProgress } from '../hooks/useProgress.js'
 
 const DOMAIN_MAP = Object.fromEntries(DOMAINS.map(d => [d.id, d]))
@@ -13,7 +14,7 @@ const STATUS_LABELS = {
 }
 
 const STATUS_PILL = {
-  not_started: 'pill-neutral',
+  not_started: 'pill-dim',
   in_progress: 'pill-accent',
   complete: 'pill-ok',
 }
@@ -25,14 +26,21 @@ export default function Projects() {
 
   return (
     <div className="screen-container">
-      <h1 className="screen-title">Projects</h1>
+      <section className="sec">
+        <header className="sec-head">
+          <div>
+            <h2 className="sec-title">Projects</h2>
+            <p className="sec-desc">Hands-on builds that reinforce each domain.</p>
+          </div>
+        </header>
+      </section>
       <div className="proj-grid">
         {PROJECTS.map((p, i) => {
           const status = progress.projects[p.id] ?? 'not_started'
           const isOpen = openProjectId === p.id
 
           return (
-            <div key={p.id} className={`proj-card status-${status}`}>
+            <Card key={p.id} className={`proj-card status-${status}`}>
               <div className="proj-top">
                 <span className="proj-num">PROJECT {String(i + 1).padStart(2, '0')}</span>
                 <button
@@ -45,10 +53,10 @@ export default function Projects() {
               <h3 className="proj-name">{p.name}</h3>
               <p className="proj-summary">{p.summary}</p>
               <div className="proj-pills">
-                <span className={`pill ${p.complexity === 'High' ? 'pill-warn' : 'pill-neutral'}`}>
+                <span className={`pill ${p.complexity === 'High' ? 'pill-warn' : 'pill-dim'}`}>
                   {p.complexity}
                 </span>
-                <span className="pill pill-neutral">~{p.hours}h</span>
+                <span className="pill pill-dim">~{p.hours}h</span>
               </div>
               <div className="proj-tags">
                 {p.domains.map(did => (
@@ -83,7 +91,7 @@ export default function Projects() {
                   </div>
                 </div>
               )}
-            </div>
+            </Card>
           )
         })}
       </div>

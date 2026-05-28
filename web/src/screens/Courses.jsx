@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { COURSES, DOMAINS } from '../data/index'
 import { useProgress } from '../hooks/useProgress'
+import Card from '../components/Card'
 import DomainTag from '../components/DomainTag'
 
 const DOMAIN_MAP = Object.fromEntries(DOMAINS.map(d => [d.id, d]))
@@ -28,29 +29,35 @@ export default function Courses() {
 
   return (
     <div className="screen-container">
-      <h1 className="screen-title">Courses</h1>
-
-      <div className="filter-row">
-        {[
-          { key: 'all', label: 'All' },
-          { key: 'partner', label: 'Partner Network (required)' },
-          { key: 'other', label: 'Recommended' },
-        ].map(({ key, label }) => (
-          <button
-            key={key}
-            className={`chip${filter === key ? ' is-active' : ''}`}
-            onClick={() => setFilter(key)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <section className="sec">
+        <header className="sec-head">
+          <div>
+            <h2 className="sec-title">Courses</h2>
+            <p className="sec-desc">Free at anthropic.skilljar.com. The four Partner Network courses are the official pre-cert sequence.</p>
+          </div>
+          <div className="filter-row">
+            {[
+              { key: 'all', label: 'All' },
+              { key: 'partner', label: 'Partner Network (required)' },
+              { key: 'other', label: 'Recommended' },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                className={`chip${filter === key ? ' is-active' : ''}`}
+                onClick={() => setFilter(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </header>
+      </section>
 
       <div className="course-grid">
         {filtered.map(c => {
           const done = !!progress.courses[c.id]
           return (
-            <div key={c.id} className={`course-card${c.partnerRequired ? ' is-required' : ''}${done ? ' is-done' : ''}`}>
+            <Card key={c.id} className={`course-card${c.partnerRequired ? ' is-required' : ''}${done ? ' is-done' : ''}`}>
               {c.partnerRequired && (
                 <div className="card-flag">Partner Network · required</div>
               )}
@@ -65,8 +72,8 @@ export default function Courses() {
               </div>
               <p className="course-blurb">{c.blurb}</p>
               <div className="course-meta">
-                <span className="pill pill-neutral">{c.hours}h</span>
-                <span className="pill pill-neutral">{c.level}</span>
+                <span className="pill pill-dim">{c.hours}h</span>
+                <span className="pill pill-dim">{c.level}</span>
               </div>
               <div className="course-doms">
                 {c.domains.map(did => (
@@ -76,14 +83,14 @@ export default function Courses() {
                 ))}
               </div>
               <div className="course-actions">
-                <button className="link-btn" onClick={() => setOpenCourseId(c.id)}>
+                <button className="ghost-btn-sm" onClick={() => setOpenCourseId(c.id)}>
                   Module list →
                 </button>
-                <a className="link-btn" href={c.url} target="_blank" rel="noopener noreferrer">
+                <a className="ghost-btn-sm" href={c.url} target="_blank" rel="noopener noreferrer">
                   Open on Skilljar ↗
                 </a>
               </div>
-            </div>
+            </Card>
           )
         })}
       </div>
@@ -92,9 +99,11 @@ export default function Courses() {
         <div className="modal-veil" onClick={() => setOpenCourseId(null)}>
           <div className="modal" role="dialog" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
-              <div className="modal-eyebrow">{modalCourse.level} · {modalCourse.hours}h</div>
-              <h2 className="modal-title">{modalCourse.name}</h2>
-              <p className="modal-blurb">{modalCourse.blurb}</p>
+              <div>
+                <div className="modal-eyebrow">{modalCourse.level} · {modalCourse.hours}h</div>
+                <h2 className="modal-title">{modalCourse.name}</h2>
+                <p className="modal-blurb">{modalCourse.blurb}</p>
+              </div>
               <button className="x-btn" onClick={() => setOpenCourseId(null)} aria-label="Close">×</button>
             </div>
             <div className="modal-doms">
@@ -116,7 +125,7 @@ export default function Courses() {
               ))}
             </div>
             <div className="modal-foot">
-              <a className="link-btn" href={modalCourse.url} target="_blank" rel="noopener noreferrer">
+              <a className="ghost-btn-sm" href={modalCourse.url} target="_blank" rel="noopener noreferrer">
                 Open course on Skilljar ↗
               </a>
               <button
