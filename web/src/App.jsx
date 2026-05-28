@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './lib/AuthContext'
 import Sidebar from './components/Sidebar'
+import PageTopbar from './components/PageTopbar'
 import Dashboard from './screens/Dashboard'
 import ExamBlueprint from './screens/ExamBlueprint'
 import StudyPlan from './screens/StudyPlan'
@@ -14,25 +14,24 @@ import MobileDownload from './screens/MobileDownload'
 
 export default function App() {
   return (
-    <AuthProvider>
-      <div className="app-layout">
-        <Sidebar />
-        <main className="app-main">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/blueprint" element={<ExamBlueprint />} />
-            <Route path="/plan" element={<StudyPlan />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/domain/:id" element={<DomainDeepDive />} />
-            <Route path="/concepts" element={<KeyConcepts />} />
-            <Route path="/exam-day" element={<ExamDayChecklist />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/mobile" element={<MobileDownload />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
-    </AuthProvider>
+    <div className="app-layout">
+      <Sidebar />
+      <main className="app-main">
+        <PageTopbar />
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/blueprint" element={<ExamBlueprint />} />
+          <Route path="/plan" element={<StudyPlan />} />
+          <Route path="/courses" element={<Courses />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/domain/:id" element={<DomainDeepDive />} />
+          <Route path="/concepts" element={<KeyConcepts />} />
+          <Route path="/exam-day" element={<ExamDayChecklist />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/mobile" element={<MobileDownload />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+    </div>
   )
 }
