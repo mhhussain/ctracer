@@ -2030,7 +2030,7 @@ code, kbd {
 }
 
 .btn-secondary + .btn-destructive {
-  margin-left: 12px;
+  margin-top: 8px;
 }
 
 .btn-destructive {
