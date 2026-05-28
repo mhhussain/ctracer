@@ -1,4 +1,4 @@
-import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth'
+import { GoogleAuthProvider, OAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth'
 import { auth } from './firebase'
 
 export function signInWithEmail(email, password) {
@@ -7,6 +7,10 @@ export function signInWithEmail(email, password) {
 
 export function signInWithGoogle() {
   return signInWithPopup(auth, new GoogleAuthProvider())
+}
+
+export function signInWithMicrosoft() {
+  return signInWithPopup(auth, new OAuthProvider('microsoft.com'))
 }
 
 export function signOut() {

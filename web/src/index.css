@@ -1950,6 +1950,16 @@ code, kbd {
   background: var(--surface-2);
 }
 
+.btn-microsoft {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-2);
+}
+
+.btn-microsoft:hover {
+  background: var(--surface-2);
+}
+
 /* =================== Profile screen =================== */
 
 .profile-subtitle {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { signInWithEmail, signInWithGoogle, signOut } from '../lib/auth'
+import { signInWithEmail, signInWithGoogle, signInWithMicrosoft, signOut } from '../lib/auth'
 import { useAuth } from '../hooks/useAuth'
 import { resetProgress } from '../lib/storage'
 import Card from '../components/Card'
@@ -98,6 +98,17 @@ export default function Profile() {
     }
   }
 
+  async function handleMicrosoftSignIn() {
+    setError(null)
+    try {
+      await signInWithMicrosoft()
+    } catch (err) {
+      if (err.code !== 'auth/popup-closed-by-user') {
+        setError(friendlyError(err.code))
+      }
+    }
+  }
+
   return (
     <div className="screen-container">
       <h1 className="screen-title">Sign In</h1>
@@ -136,6 +147,10 @@ export default function Profile() {
 
           <button className="btn btn-google" onClick={handleGoogleSignIn}>
             Sign in with Google
+          </button>
+
+          <button className="btn btn-microsoft" onClick={handleMicrosoftSignIn}>
+            Sign in with Microsoft
           </button>
 
           <div className="profile-danger-zone">
