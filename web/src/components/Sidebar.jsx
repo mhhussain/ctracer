@@ -62,7 +62,7 @@ export default function Sidebar() {
         </div>
         <div className="sb-brand-text">
           <div className="sb-brand-1">Study Plan</div>
-          <div className="sb-brand-2">CCA-F</div>
+          <div className="sb-brand-2">Claude Certified Architect – Foundations</div>
         </div>
       </div>
 

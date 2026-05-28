@@ -4,10 +4,10 @@ import { useProgress } from '../hooks/useProgress'
 import { DOMAINS } from '../data/index'
 
 const ROUTE_META = {
-  '/': { title: 'Dashboard', sub: 'Your CCA-F prep at a glance' },
-  '/blueprint': { title: 'Exam Blueprint', sub: '60 questions · 90 minutes · pass at 70%' },
-  '/plan': { title: 'Study Plan', sub: 'A 3–5 week track for the CCA-F' },
-  '/courses': { title: 'Courses', sub: 'Free courses at anthropic.skilljar.com' },
+  '/': { title: 'Dashboard', sub: 'Your Claude Certified Architect – Foundations prep at a glance' },
+  '/blueprint': { title: 'Exam Blueprint', sub: '5 domains · 60 questions · 120 minutes' },
+  '/plan': { title: 'Study Plan', sub: '4-phase roadmap, ~47.5 hours hands-on' },
+  '/courses': { title: 'Courses', sub: 'Anthropic Academy · free via Skilljar' },
   '/projects': { title: 'Projects', sub: 'Hands-on builds that reinforce each domain' },
   '/concepts': { title: 'Key Concepts', sub: 'Quick reference for exam day' },
   '/exam-day': { title: 'Exam Day Checklist', sub: 'One last gut-check before you sit the exam' },
