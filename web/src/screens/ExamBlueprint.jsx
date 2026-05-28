@@ -3,27 +3,26 @@ import { useNavigate } from 'react-router-dom'
 import { DOMAINS } from '../data/index'
 import Card from '../components/Card'
 
-function arc(startDeg, endDeg, outerR = 88, innerR = 56, cx = 110, cy = 110) {
-  const toRad = (deg) => (deg * Math.PI) / 180
-  const x1 = cx + outerR * Math.cos(toRad(startDeg))
-  const y1 = cy + outerR * Math.sin(toRad(startDeg))
-  const x2 = cx + outerR * Math.cos(toRad(endDeg))
-  const y2 = cy + outerR * Math.sin(toRad(endDeg))
-  const x3 = cx + innerR * Math.cos(toRad(endDeg))
-  const y3 = cy + innerR * Math.sin(toRad(endDeg))
-  const x4 = cx + innerR * Math.cos(toRad(startDeg))
-  const y4 = cy + innerR * Math.sin(toRad(startDeg))
+// Arc math for donut slices. Angles in degrees, -90 offset so first slice starts at top.
+function arc(startDeg, endDeg) {
+  const cx = 110, cy = 110, R = 88, r = 56
+  const a1 = ((startDeg - 90) * Math.PI) / 180
+  const a2 = ((endDeg - 90) * Math.PI) / 180
   const large = endDeg - startDeg > 180 ? 1 : 0
-  return `M ${x1} ${y1} A ${outerR} ${outerR} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${innerR} ${innerR} 0 ${large} 0 ${x4} ${y4} Z`
+  const x1 = cx + R * Math.cos(a1), y1 = cy + R * Math.sin(a1)
+  const x2 = cx + R * Math.cos(a2), y2 = cy + R * Math.sin(a2)
+  const x3 = cx + r * Math.cos(a2), y3 = cy + r * Math.sin(a2)
+  const x4 = cx + r * Math.cos(a1), y4 = cy + r * Math.sin(a1)
+  return `M ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${r} ${r} 0 ${large} 0 ${x4} ${y4} Z`
 }
 
 const totalWeight = DOMAINS.reduce((s, d) => s + d.weight, 0)
-let acc = -90
+let acc = 0
 const slices = DOMAINS.map((d) => {
   const start = acc
-  const end = acc + (d.weight / totalWeight) * 360
+  const end = acc + d.weight
   acc = end
-  return { ...d, startAngle: start, endAngle: end }
+  return { ...d, startDeg: (start / totalWeight) * 360, endDeg: (end / totalWeight) * 360 }
 })
 
 export default function ExamBlueprint() {
@@ -34,126 +33,137 @@ export default function ExamBlueprint() {
   return (
     <div className="screen-container">
       <section className="sec">
-        <header className="sec-head">
-          <div>
-            <h2 className="sec-title">Blueprint</h2>
-            <p className="sec-desc">60 questions · 90 minutes · pass at 70%</p>
-          </div>
-        </header>
-
-      <div className="bp-grid">
-        {/* Left — Donut card */}
-        <Card className="bp-donut">
-          <svg viewBox="0 0 220 220">
-            {slices.map((s) => (
-              <path
-                key={s.id}
-                d={arc(s.startAngle, s.endAngle)}
-                className={`donut-slice dtag-${s.color}${hovered === s.id ? ' is-hov' : hovered ? ' is-dim' : ''}`}
-                onMouseEnter={() => setHovered(s.id)}
-                onMouseLeave={() => setHovered(null)}
-                onClick={() => setExpanded(s.id)}
-              />
-            ))}
-            <text x="110" y="106" className="donut-c-1">60</text>
-            <text x="110" y="122" className="donut-c-2">questions</text>
-          </svg>
-
-          <div className="donut-legend">
-            {DOMAINS.map((d) => (
-              <button
-                key={d.id}
-                className={`legend-row${hovered === d.id ? ' is-hov' : ''}`}
-                onClick={() => setExpanded(d.id)}
-                onMouseEnter={() => setHovered(d.id)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                <span className={`legend-sw dtag-${d.color}`} />
-                <span className="legend-num">D{d.num}</span>
-                <span className="legend-name">{d.short}</span>
-                <span className="legend-w">{d.weight}%</span>
-                <span className="legend-q">{d.questions}q</span>
-              </button>
-            ))}
-          </div>
-        </Card>
-
-        {/* Right — Weight & difficulty card */}
-        <Card className="bp-bars">
-          <h3>Weight & difficulty</h3>
-          <p>Domain 1 is the largest and the hardest — allocate time accordingly.</p>
-          <div className="bars">
-            {DOMAINS.map((d) => (
-              <div
-                key={d.id}
-                className="bar-row"
-                onMouseEnter={() => setHovered(d.id)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                <div className="bar-row-head">
-                  <span className={`dtag dtag-${d.color}`} onClick={() => navigate(`/domain/${d.id}`)}>D{d.num}</span>
-                  <span className={`pill ${d.difficulty === 'Hardest' ? 'pill-warn' : 'pill-dim'}`}>{d.difficulty}</span>
-                </div>
-                <div className="bar-track">
-                  <div
-                    className={`bar-fill dtag-${d.color}`}
-                    style={{ width: `${(d.weight / 27) * 100}%` }}
+        <div className="bp-grid">
+          {/* Donut + legend */}
+          <Card className="bp-donut">
+            <div className="donut-wrap">
+              <svg viewBox="0 0 220 220" width={220} height={220}>
+                {slices.map((s) => (
+                  <path
+                    key={s.id}
+                    d={arc(s.startDeg, s.endDeg)}
+                    className={`donut-slice dtag-${s.color}${hovered === s.id ? ' is-hov' : hovered ? ' is-dim' : ''}`}
+                    onMouseEnter={() => setHovered(s.id)}
+                    onMouseLeave={() => setHovered(null)}
+                    onClick={() => setExpanded(s.id)}
                   />
-                  <span className="bar-lab">{d.weight}% · {d.questions} questions</span>
-                </div>
+                ))}
+              </svg>
+              <div className="donut-center">
+                <div className="donut-c-1">60</div>
+                <div className="donut-c-2">questions</div>
               </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+            </div>
+            <div className="donut-legend">
+              {DOMAINS.map((d) => (
+                <button
+                  key={d.id}
+                  className={`legend-row${hovered === d.id ? ' is-hov' : ''}`}
+                  onClick={() => setExpanded(d.id)}
+                  onMouseEnter={() => setHovered(d.id)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  <span className={`legend-sw dtag-${d.color}`} />
+                  <span className="legend-num">D{d.num}</span>
+                  <span className="legend-name">{d.short}</span>
+                  <span className="legend-w">{d.weight}%</span>
+                  <span className="legend-q">{d.questions}q</span>
+                </button>
+              ))}
+            </div>
+          </Card>
 
-      {/* Expandable domain cards */}
-      <div className="bp-expand">
-        {DOMAINS.map((d) => {
-          const isOpen = expanded === d.id
-          return (
-            <div key={d.id} className="exp-card">
-              <button className="exp-head" onClick={() => setExpanded(isOpen ? null : d.id)}>
-                <span className={`exp-stripe dtag-${d.color}`} />
-                <span className={`dtag dtag-${d.color}`}>D{d.num}</span>
-                <span className="exp-name">{d.name}</span>
-                <span className="exp-meta">
-                  <span className="pill pill-dim">{d.questions}q</span>
-                  <span className="pill pill-dim">{d.weight}%</span>
-                  {d.difficulty === 'Hardest' && <span className="pill pill-warn">Hardest</span>}
-                </span>
-                <span className="exp-chev">{isOpen ? '−' : '+'}</span>
-              </button>
-              {isOpen && (
-                <div className="exp-body">
-                  <p className="exp-blurb">{d.blurb}</p>
-                  <div className="exp-cols">
-                    <div>
-                      <div className="col-head">Key topics</div>
-                      <ul className="topic-list">
-                        {d.topics.map(t => (
-                          <li key={t.name}><strong>{t.name}</strong> — {t.desc}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <div className="col-head">Anti-patterns to know</div>
-                      <ul className="anti-list">
-                        {d.antiPatterns.map((ap, i) => (
-                          <li key={i}><span className="anti-x">✕</span>{ap}</li>
-                        ))}
-                      </ul>
-                      <button className="link-btn" onClick={() => navigate(`/domain/${d.id}`)}>
-                        Open domain deep dive →
-                      </button>
-                    </div>
+          {/* Weight & difficulty bars */}
+          <Card className="bp-bars">
+            <h3>Weight & difficulty</h3>
+            <p className="muted-sm">Domain 1 is the largest and the hardest — allocate time accordingly.</p>
+            <div className="bars">
+              {DOMAINS.map((d) => (
+                <div
+                  key={d.id}
+                  className="bar-row"
+                  onMouseEnter={() => setHovered(d.id)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  <div className="bar-row-head">
+                    <span
+                      className={`dtag dtag-${d.color}`}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => navigate(`/domain/${d.id}`)}
+                    >
+                      D{d.num}
+                    </span>
+                    <span className={`pill ${d.difficulty === 'Hardest' ? 'pill-warn' : 'pill-dim'}`}>
+                      {d.difficulty}
+                    </span>
+                  </div>
+                  <div className="bar-track">
+                    <div
+                      className={`bar-fill dtag-${d.color}`}
+                      style={{ width: `${(d.weight / 27) * 100}%` }}
+                    />
+                    <span className="bar-lab">{d.weight}% · {d.questions} questions</span>
                   </div>
                 </div>
-              )}
+              ))}
             </div>
-          )
-        })}
-      </div>
+          </Card>
+        </div>
+
+        {/* Expandable domain cards — Card wrapper gives border + background */}
+        <div className="bp-expand">
+          {DOMAINS.map((d) => {
+            const isOpen = expanded === d.id
+            return (
+              <Card key={d.id} className={`exp-card${isOpen ? ' is-open' : ''}`}>
+                <button className="exp-head" onClick={() => setExpanded(isOpen ? null : d.id)}>
+                  <span className={`exp-stripe dtag-${d.color}`} />
+                  <span className={`dtag dtag-${d.color}`}>D{d.num}</span>
+                  <span className="exp-name">{d.name}</span>
+                  <span className="exp-meta">
+                    <span className="pill pill-dim">{d.questions}q</span>
+                    <span className="pill pill-dim">{d.weight}%</span>
+                    {d.difficulty === 'Hardest' && <span className="pill pill-warn">Hardest</span>}
+                  </span>
+                  <span className="exp-chev">{isOpen ? '−' : '+'}</span>
+                </button>
+                {isOpen && (
+                  <div className="exp-body">
+                    <p className="exp-blurb">{d.blurb}</p>
+                    <div className="exp-cols">
+                      <div>
+                        <div className="col-head">Key topics</div>
+                        <ul className="topic-list">
+                          {d.topics.map((t) => (
+                            <li key={t.name}>
+                              <span className="topic-name">{t.name}</span>
+                              <span className="topic-desc"> — {t.desc}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="col-head">Anti-patterns to know</div>
+                        <ul className="anti-list">
+                          {d.antiPatterns.map((ap, i) => (
+                            <li key={i}><span className="anti-x">✕</span>{ap}</li>
+                          ))}
+                        </ul>
+                        <button
+                          className="link-btn"
+                          style={{ marginTop: 12, display: 'block' }}
+                          onClick={() => navigate(`/domain/${d.id}`)}
+                        >
+                          Open domain deep dive →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            )
+          })}
+        </div>
       </section>
     </div>
   )
