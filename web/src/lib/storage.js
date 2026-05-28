@@ -9,6 +9,7 @@ export const DEFAULT_PROGRESS = {
   tasks: {},
   exam_day: {},
   practiceScore: null,
+  examDate: null, // ISO date string "YYYY-MM-DD" or null
 }
 
 function getLocalProgress() {
