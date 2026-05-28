@@ -62,6 +62,15 @@ export default function Dashboard() {
               <span><span className="meta-k">Format</span>{CERT.format}</span>
               <span><span className="meta-k">Duration</span>{CERT.duration}</span>
               <span><span className="meta-k">Pass</span>{CERT.passing}</span>
+              {progress.examDate && (() => {
+                const days = Math.ceil((new Date(progress.examDate) - new Date()) / 86_400_000)
+                return (
+                  <span>
+                    <span className="meta-k">Exam in</span>
+                    {days > 0 ? `${days} days` : 'Today!'}
+                  </span>
+                )
+              })()}
             </div>
             <div className="hero-tags">
               <Pill tone="accent">Launched {CERT.launched}</Pill>
