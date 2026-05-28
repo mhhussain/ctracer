@@ -1940,24 +1940,24 @@ code, kbd {
   border-color: var(--ok);
 }
 
-.btn-google {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border-2);
-}
-
-.btn-google:hover {
-  background: var(--surface-2);
-}
-
+.btn-google,
 .btn-microsoft {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
+.btn-google:hover,
 .btn-microsoft:hover {
   background: var(--surface-2);
+}
+
+.btn-microsoft {
+  margin-top: 10px;
 }
 
 /* =================== Profile screen =================== */
