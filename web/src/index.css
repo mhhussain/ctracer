@@ -309,6 +309,33 @@ code, kbd {
   border-radius: 4px;
 }
 
+/* Topbar — hamburger + label split (desktop defaults) */
+.topbar-left {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.topbar-hamburger {
+  display: none; /* shown only on mobile */
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  color: var(--text);
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color .12s, background .12s;
+}
+.topbar-hamburger:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.topbar-exam-short { display: none; } /* shown only on mobile */
+
 .screen {
   padding: 24px var(--pad) 80px;
   max-width: 1280px;
@@ -2067,4 +2094,179 @@ code, kbd {
 .sidebar-theme-btn:hover {
   color: var(--text);
   background: var(--surface-2);
+}
+
+/* =================== Mobile (≤480px) =================== */
+
+@media (max-width: 480px) {
+
+  /* ── Global spacing ── */
+  :root {
+    --pad: 16px;
+    --gap: 12px;
+  }
+
+  .screen,
+  .screen-container {
+    padding: 16px 16px 80px;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    padding: 12px 16px;
+    align-items: center;
+  }
+  .topbar-left {
+    align-items: center;
+    gap: 8px;
+  }
+  .topbar-hamburger {
+    display: flex;
+  }
+  .topbar-sub {
+    display: none;
+  }
+  .topbar-ref-btn {
+    display: none;
+  }
+  .topbar-exam-long {
+    display: none;
+  }
+  .topbar-exam-short {
+    display: inline;
+  }
+
+  /* ── Sidebar drawer ── */
+  /* NOTE: the 960px media query sets .sidebar { display: none }.
+     We must override it here or the drawer is invisible even when open. */
+  .sidebar {
+    display: flex; /* override display:none from the 960px query */
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+  }
+  .sidebar.is-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+  }
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    backdrop-filter: blur(2px);
+  }
+  .sidebar-backdrop.is-open {
+    display: block;
+  }
+
+  /* ── Dashboard ── */
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .hero-r {
+    display: none;
+  }
+  .hero-title {
+    font-size: 22px;
+  }
+  .hero-meta {
+    gap: 14px;
+  }
+  .dom-row {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 6px 8px;
+  }
+  .dom-row-l  { grid-area: 1 / 1; }
+  .dom-row-r  { grid-area: 1 / 2; }
+  .dom-row-bar { grid-area: 2 / 1 / 3 / 3; }
+  .dom-row-q  { display: none; }
+
+  /* ── Exam Blueprint ── */
+  .bp-donut {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .donut-legend {
+    width: 100%;
+  }
+  .exp-cols {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Study Plan ── */
+  .phase-head {
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 4px 14px;
+  }
+  .phase-num  { grid-area: 1 / 1; }
+  .phase-name { grid-area: 1 / 2; }
+  .phase-head .exp-chev { grid-area: 1 / 3; }
+  .phase-week { grid-area: 2 / 1 / 3 / 4; font-size: 11px; }
+  .phase-goal { display: none; }
+  .phase-head .pill { display: none; }
+
+  /* ── Courses ── */
+  .filter-row {
+    flex-wrap: wrap;
+  }
+  .modal-veil {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal {
+    border-radius: 14px 14px 0 0;
+    max-height: 90vh;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* ── Projects ── */
+  .proj-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Domain Deep Dive ── */
+  .dom-hero-r {
+    display: none;
+  }
+
+  /* ── Key Concepts ── */
+  .ref-grid {
+    grid-template-columns: 1fr;
+  }
+  .ref-api,
+  .ref-models,
+  .ref-mcp,
+  .ref-cc,
+  .ref-patt,
+  .ref-anti {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .ref-dl-row {
+    grid-template-columns: 1fr;
+  }
+  .cc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Exam Day ── */
+  .exam-hero {
+    grid-template-columns: 1fr;
+  }
+  .exam-ready {
+    display: none;
+  }
+  .exam-meta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
 }
