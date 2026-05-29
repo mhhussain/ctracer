@@ -18,6 +18,24 @@ const PREP_ITEMS = [
   { to: '/exam-day', label: 'Exam Day', glyph: '★' },
 ]
 
+function SidebarExamBar({ examDate }) {
+  const daysLeft = Math.ceil((new Date(examDate) - new Date()) / 86_400_000)
+  const totalDays = 42
+  const elapsed = totalDays - Math.max(daysLeft, 0)
+  const pct = Math.min(Math.round((elapsed / totalDays) * 100), 100)
+  const color = daysLeft > 14 ? 'accent' : 'amber'
+  const label = daysLeft > 0 ? `${daysLeft}d` : 'Today!'
+  return (
+    <>
+      <div className="sb-foot-row">
+        <span>Exam in</span>
+        <span className="sb-foot-pct">{label}</span>
+      </div>
+      <ProgressBar value={pct} color={color} height={4} />
+    </>
+  )
+}
+
 export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const { theme, toggleTheme } = useTheme()
   const { progress, stats } = useProgress()
@@ -26,7 +44,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const activePhase =
     PHASES.find((p) => p.tasks.some((t) => !progress.tasks[t.id])) ??
     PHASES[PHASES.length - 1]
-  const hoursLeft = stats.hoursTotal - stats.hoursDone
+  const hoursLeft = Math.round((stats.hoursTotal - stats.hoursDone) * 10) / 10
 
   return (
     <aside className={`sidebar${isOpen ? ' is-open' : ''}`}>
@@ -46,7 +64,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
         </div>
         <div className="sb-brand-text">
           <div className="sb-brand-1">Study Plan</div>
-          <div className="sb-brand-2">CCA-F</div>
+          <div className="sb-brand-2">Claude Certified Architect – Foundations</div>
         </div>
       </div>
 
@@ -110,6 +128,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
           <span className="sb-foot-pct">{stats.overall}%</span>
         </div>
         <ProgressBar value={stats.overall} color="accent" height={4} />
+        {progress.examDate && <SidebarExamBar examDate={progress.examDate} />}
         <div className="sb-foot-meta">
           <span>Phase {activePhase.num}</span>
           <span>·</span>

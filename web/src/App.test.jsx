@@ -7,7 +7,7 @@ describe('App routing', () => {
   it('renders Dashboard at /', () => {
     render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>)
     // Sidebar brand is always present
-    expect(screen.getByText('CCA-F')).toBeInTheDocument()
+    expect(document.querySelector('.sb-brand-2')).toBeInTheDocument()
   })
 
   it('renders sidebar-backdrop element', () => {

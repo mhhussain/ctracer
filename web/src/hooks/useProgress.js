@@ -74,7 +74,7 @@ export function useProgress() {
   )
 
   const setExamDate = useCallback(
-    (date) => update((p) => ({ ...p, examDate: date })),
+    (date) => update((p) => ({ ...p, examDate: date ?? null })),
     [update],
   )
 

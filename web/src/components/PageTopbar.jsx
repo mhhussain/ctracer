@@ -4,7 +4,7 @@ import { useProgress } from '../hooks/useProgress'
 import { DOMAINS } from '../data/index'
 
 const ROUTE_META = {
-  '/': { title: 'Dashboard', sub: 'Your CCA-F prep at a glance' },
+  '/': { title: 'Dashboard', sub: 'Your Claude Certified Architect – Foundations prep at a glance' },
   '/blueprint': { title: 'Exam Blueprint', sub: '5 domains · 60 questions · 120 minutes' },
   '/plan': { title: 'Study Plan', sub: '4-phase roadmap, ~47.5 hours hands-on' },
   '/courses': { title: 'Courses', sub: 'Anthropic Academy · free via Skilljar' },
@@ -26,6 +26,7 @@ export default function PageTopbar({ onMenuClick }) {
   const [modalOpen, setModalOpen] = useState(false)
   const [dateInput, setDateInput] = useState(progress.examDate ?? '')
 
+  // Derive title/sub from path, including dynamic /domain/:id
   let meta = ROUTE_META[location.pathname]
   if (!meta) {
     const domainMatch = location.pathname.match(/^\/domain\/(.+)$/)
@@ -42,7 +43,9 @@ export default function PageTopbar({ onMenuClick }) {
   const examDays = progress.examDate ? daysUntil(progress.examDate) : null
   const examBtnLabel =
     examDays !== null
-      ? examDays > 0 ? `Exam: ${examDays}d` : 'Exam: Today!'
+      ? examDays > 0
+        ? `Exam: ${examDays}d`
+        : 'Exam: Today!'
       : 'Exam day'
   const examBtnShort =
     examDays !== null

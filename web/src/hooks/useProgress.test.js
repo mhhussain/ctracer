@@ -143,4 +143,17 @@ describe('useProgress', () => {
     expect(result.current.progress.projects.pr1).toBe('not_started')
     expect(result.current.stats.projectsDone).toBe(0)
   })
+
+  it('setExamDate stores and returns exam date', () => {
+    const { result } = renderHook(() => useProgress())
+    act(() => result.current.setExamDate('2026-07-01'))
+    expect(result.current.progress.examDate).toBe('2026-07-01')
+  })
+
+  it('setExamDate can be cleared with null', () => {
+    const { result } = renderHook(() => useProgress())
+    act(() => result.current.setExamDate('2026-07-01'))
+    act(() => result.current.setExamDate(null))
+    expect(result.current.progress.examDate).toBeNull()
+  })
 })
