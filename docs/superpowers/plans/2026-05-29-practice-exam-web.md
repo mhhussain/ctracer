@@ -6,7 +6,9 @@
 
 **Architecture:** Two parts.
 - **Part A — Web client (this can be executed by a standard model).** A faithful port of the Claude Design prototype into the real app's architecture (React Router, `useAuth`, the storage abstraction, Vitest). Both modes score **client-side** in Part A so the entire UI works end-to-end, is testable, and ships standalone. Leaderboard uses the seeded board + a locally-stored "posted" entry (exactly like the prototype).
-- **Part B — Firebase Functions hardening (⚠️ USE A HIGHER-POWERED MODEL FOR ALL OF PART B).** Adds `functions/` with three callables (`startExam`, `submitExam`, `postToLeaderboard`), moves the answer key off the client for timed mode, and replaces the seeded leaderboard with a real Firestore collection. Requires the Firebase **Blaze** plan (the maintainer enables this manually).
+- **Part B — Firebase Functions hardening (⚠️ USE A HIGHER-POWERED MODEL FOR ALL OF PART B).** Adds `functions/` with three callables (`startExam`, `submitExam`, `postToLeaderboard`), moves the timed answer key off the client (the timed content set lives only in `functions/practiceBank.js`), and replaces the seeded leaderboard with a real Firestore collection. Requires the Firebase **Blaze** plan (the maintainer enables this manually).
+
+> **Mode-split content (answer-key isolation).** Per the spec's Question Model, each question has two **disjoint** content sets: a `practice` set (1–2 stem/phrasing wordings, distinct strings) shipped in the client at `web/src/data/practiceQuestions.js`, and a `timed` set (2–3 wordings) that lives **only** server-side in `functions/practiceBank.js` and is never imported by the web build. Practice mode renders the practice set client-side; timed mode renders the server-supplied set (answer key stripped). This is why the client file in Task 1 contains **only** practice wordings, and the server bank in Task 10 contains the **timed** wordings — they must never co-locate.
 
 **Tech Stack:** Vite + React 19, react-router-dom, Firebase JS SDK (Auth + Firestore + Functions), Vitest + React Testing Library, plain CSS (single design system in `web/src/index.css`).
 
@@ -50,7 +52,7 @@ The prototype attaches everything to `window`. The real app uses ES modules. Whe
 ```
 web/src/
   data/
-    practiceQuestions.js        # CREATE — placeholder bank + lookup (PASS_PCT, DURATION_MIN, BLUEPRINT, BANK, questionById)
+    practiceQuestions.js        # CREATE — placeholder bank (PRACTICE content only) + lookup (PASS_PCT, DURATION_MIN, BLUEPRINT, BANK, questionById)
     practiceQuestions.test.js   # CREATE
   lib/
     practiceEngine.js           # CREATE — pure: shuffle, createAttempt, renderInstance, scoreAttempt
@@ -88,9 +90,11 @@ web/src/
 
 # PART A — Web Client
 
-## Task 1: Placeholder question bank (`practiceQuestions.js`)
+## Task 1: Placeholder question bank — PRACTICE content only (`practiceQuestions.js`)
 
-Port the bank generator from `docs/superpowers/specs/practice-exam-design/practice-data.js` into an ES module. The real `DOMAINS` (in `web/src/data/index.js`) already has the exact shape the generator needs: `id` (`"d1"`–`"d5"`), `num`, `short`, `color`, and `topics: [{ name, desc }]`.
+Port the bank generator from `docs/superpowers/specs/practice-exam-design/practice-data.js` into an ES module, but include **only the `practice` content set** (1–2 wordings per stem and per option). The `timed` set is authored separately in `functions/practiceBank.js` (Task 10) and must **never** appear in this client file — that is the whole point of the mode split. The real `DOMAINS` (in `web/src/data/index.js`) already has the exact shape the generator needs: `id` (`"d1"`–`"d5"`), `num`, `short`, `color`, and `topics: [{ name, desc }]`.
+
+> The client question shape here uses plain phrasing arrays (`text: [practice wordings]`) — i.e. the practice-only projection of the canonical `{ practice, timed }` model in the spec. The engine (Task 2) operates on these arrays unchanged.
 
 **Files:**
 - Create: `web/src/data/practiceQuestions.js`
@@ -121,10 +125,11 @@ describe('practiceQuestions bank', () => {
     for (const q of BANK) {
       expect(q.options).toHaveLength(4)
       expect(q.options.filter((o) => o.correct)).toHaveLength(1)
-      // every option carries 2-3 interchangeable phrasings
+      // practice options carry 1-2 interchangeable phrasings (timed set lives server-side)
       for (const o of q.options) {
         expect(Array.isArray(o.text)).toBe(true)
-        expect(o.text.length).toBeGreaterThanOrEqual(2)
+        expect(o.text.length).toBeGreaterThanOrEqual(1)
+        expect(o.text.length).toBeLessThanOrEqual(2)
       }
     }
   })
@@ -145,10 +150,14 @@ Expected: FAIL — `Failed to resolve import "./practiceQuestions"`.
 
 ```js
 // web/src/data/practiceQuestions.js
-// CCA-F Practice Exam — placeholder question bank.
+// CCA-F Practice Exam — placeholder question bank (PRACTICE content set ONLY).
 // Ported from docs/superpowers/specs/practice-exam-design/practice-data.js.
 // Placeholder content; ~100 real questions supplied later by the maintainer.
-// Structure is tied to real domain topics so it feels authentic.
+//
+// ⚠️ ANSWER-KEY ISOLATION: this file holds ONLY the `practice` wordings (1-2 per
+// stem/option). The `timed` content set + answer key live exclusively in
+// functions/practiceBank.js (Task 10) and must never be imported here, so the
+// timed answer key never ships in the web bundle.
 import { DOMAINS } from './index'
 
 export const PASS_PCT = 72
@@ -156,51 +165,34 @@ export const DURATION_MIN = 120
 // Blueprint weighting — must total 60.
 export const BLUEPRINT = { d1: 16, d2: 12, d3: 12, d4: 11, d5: 9 }
 
-// ---- phrasing pools (2-3 equivalent variants shown at random) ----
+// ---- PRACTICE phrasing pools (1-2 equivalent variants shown at random) ----
 const CORRECT_POOL = [
   [
-    'Apply the documented best-practice pattern and validate the result before continuing.',
-    'Use the recommended pattern, then verify the output before moving on.',
-    'Follow the canonical approach and confirm the result is valid first.',
+    'Apply the documented best-practice pattern and validate before continuing.',
+    'Use the recommended pattern, then verify the output.',
   ],
   [
-    'Use the recommended approach with explicit error handling and a fallback path.',
-    'Adopt the standard approach, handling errors explicitly with a fallback.',
-    'Go with the documented method and add an explicit fallback for failures.',
+    'Use the recommended approach with explicit error handling and a fallback.',
+    'Handle errors explicitly and add a fallback path.',
   ],
   [
-    'Choose the right model tier for the task and constrain the output to a schema.',
-    'Match the model tier to task complexity and enforce a strict output schema.',
-    'Right-size the model for the step and validate output against a schema.',
+    'Right-size the model for the step and constrain output to a schema.',
+    'Match the model tier to the task and enforce an output schema.',
   ],
 ]
 const DISTRACTOR_POOL = [
+  ['Skip validation and trust the first response.'],
   [
-    "Skip validation and trust the model's first response.",
-    'Assume the first response is correct and skip any checks.',
+    'Use the most expensive model tier for every step.',
+    'Default to the top-tier model everywhere.',
   ],
+  ['Cram all context into one unstructured prompt.'],
   [
-    'Use the most expensive model tier for every step regardless of complexity.',
-    'Default to the top-tier model everywhere, even for trivial steps.',
-    'Always pick the largest model no matter how simple the task is.',
+    'Retry indefinitely with no backoff.',
+    'Loop forever on failure with no exit.',
   ],
-  [
-    'Cram all available context into one unstructured prompt.',
-    'Put every document into a single prompt with no structure.',
-  ],
-  [
-    'Retry indefinitely with no backoff or escape condition.',
-    'Loop forever on failure without any backoff or exit.',
-    'Keep retrying immediately with no limit and no backoff.',
-  ],
-  [
-    'Ignore returned errors and proceed as if the call succeeded.',
-    'Swallow the error and continue as though nothing failed.',
-  ],
-  [
-    'Hard-code the behavior and ignore edge cases entirely.',
-    'Bake in a fixed path and leave failure modes unhandled.',
-  ],
+  ['Ignore returned errors and proceed.'],
+  ['Hard-code the behavior and ignore edge cases.'],
 ]
 
 function pick(arr, n) {
@@ -213,12 +205,12 @@ function pick(arr, n) {
   return out
 }
 
+// PRACTICE stems only (1-2 wordings). Timed stems are authored server-side.
 function stemVariants(topic) {
-  const t = topic.name
+  const t = topic.name.toLowerCase()
   return [
-    `Which approach best handles ${t.toLowerCase()} in a production Claude system?`,
-    `A team is implementing ${t.toLowerCase()}. What is the recommended pattern?`,
-    `Scenario: ${topic.desc}. Which choice is correct?`,
+    `Which approach best handles ${t} in a production Claude system?`,
+    `A team is implementing ${t}. What is the recommended pattern?`,
   ]
 }
 
@@ -1312,16 +1304,16 @@ git commit -m "chore: scaffold Firebase Functions for practice exam"
 
 ---
 
-## Task 10: Server question bank + `startExam`
+## Task 10: Server question bank (TIMED content) + `startExam`
 
-The canonical bank (with answers) lives **only** in `functions/`. `startExam` performs domain-weighted selection, freezes phrasing + option order, strips `isCorrect`, writes a session doc, and returns sanitized questions + a `sessionId`.
+The **timed** content set + answer key live **only** in `functions/` and are never imported by the web build — this is what keeps the timed answer key off the client. `startExam` performs domain-weighted selection, freezes phrasing + option order, strips `isCorrect`, writes a session doc, and returns sanitized questions + a `sessionId`.
 
 **Files:**
-- Create: `functions/practiceBank.js` (server copy of the bank + engine, ported from `functions`-side of `practice-data.js`; it must NOT import from `web/`), `functions/startExam.js`
+- Create: `functions/practiceBank.js` (server-only bank + engine; it must NOT import from `web/`), `functions/startExam.js`
 
-- [ ] **Step 1: `functions/practiceBank.js`** — port the bank builder and `createServerAttempt` (mirror of `createAttempt`) and a server `scoreServerAttempt`. Because Functions can't import the web `DOMAINS`, inline a minimal domain list `[{id:'d1',num:1},…,{id:'d5',num:5}]` and the same `BLUEPRINT`, `CORRECT_POOL`, `DISTRACTOR_POOL`, `stemVariants`, and build loop from `web/src/data/practiceQuestions.js` + `web/src/lib/practiceEngine.js`. Export `BANK`, `BLUEPRINT`, `PASS_PCT`, `buildSession()` (returns `{ instances, sanitized }` where `sanitized` strips `correct`), `scoreSession(sessionInstances, answers)`.
+- [ ] **Step 1: `functions/practiceBank.js`** — build the **timed** bank and the server attempt/score logic. Use the **`timed` pools** (2–3 wordings each) and **timed stems** (2–3) from `docs/superpowers/specs/practice-exam-design/practice-data.js` (the `timed:` arrays in `CORRECT_POOL` / `DISTRACTOR_POOL` / `stemVariants`) — these are **distinct strings** from the practice set in Task 1. Do **not** copy the practice wordings here, and do **not** import `web/src/data/practiceQuestions.js`. Because Functions can't import the web `DOMAINS`, inline a minimal domain list `[{id:'d1',num:1},…,{id:'d5',num:5}]`, plus the same `BLUEPRINT` and build loop. Export `BANK`, `BLUEPRINT`, `PASS_PCT`, `buildSession()` (returns `{ instances, sanitized }` where `instances` keep `correct` server-side and `sanitized` strips it), `scoreSession(sessionInstances, answers)`.
 
-  > Keep the **same instance shape** (`qid`, `domain`, `stemIdx`, `optOrder`, `phraseIdx`) so scoring logic matches Part A exactly.
+  > Since this bank holds a single content set (timed only), option `text` here is a plain array of the timed wordings — mirror Task 1's shape, just with the timed strings. Keep the **same instance shape** (`qid`, `domain`, `stemIdx`, `optOrder`, `phraseIdx`) so scoring matches Part A exactly.
 
 - [ ] **Step 2: `functions/startExam.js`**
 
@@ -1600,6 +1592,7 @@ Expected: web app live with the working Practice Exam.
 
 - Two modes, sign-in gating, 60 questions, 120-min timer, domain-weighted selection → Tasks 1–2, 6–7 (Part A); hardened in Task 10/14.
 - Anti-memorization phrasings + shuffled options → Task 1 (pools) + Task 2 (`createAttempt`/`renderInstance`).
+- Mode-split content / answer-key isolation (practice set client-side, timed set server-only, distinct wordings) → Task 1 (practice pools only) + Task 10 (timed pools only, never imported by web) + Task 14 (timed renders server payload).
 - Scoring (% correct, 72% pass, per-domain) → Task 2 (`scoreAttempt`), server mirror Task 11.
 - Instant feedback (practice) / none (timed) → Task 6 (`ExamRunner` `optState`) + Task 14 timed branch.
 - Persistence (Firestore signed-in / localStorage signed-out; attempts list) → Tasks 3–4, server writes Task 11.

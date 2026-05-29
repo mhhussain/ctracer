@@ -63,40 +63,67 @@ order, and picks one phrasing per option per render (see Question Model).
 ## Question Model
 
 Content does not exist yet. The design uses **placeholder questions**. The user will
-supply ~100 real questions later as a static data file (hardcoded in each app's `data/`
-directory, per the project's content strategy — never in Firestore).
+supply ~100 real questions later as static data (hardcoded per the project's content
+strategy — never in Firestore).
 
-Each question:
+**Mode-split content (answer-key isolation).** Practice mode scores client-side and works
+signed-out, so its content necessarily ships in the client bundle. To keep the *timed*
+exam's answer key off the client, every question holds **two disjoint content sets** — a
+`practice` set and a `timed` set — stored in **separate locations that never co-locate**:
+
+| Set | Stem wordings | Phrasings per option | Stored in | Reaches client? |
+|---|---|---|---|---|
+| `practice` | 1–2 | 1–2 | `web/src/data/practiceQuestions.js` (client) | Yes (practice is no-stakes) |
+| `timed` | 2–3 | 2–3 | `functions/practiceBank.js` (server only) | No — server strips `isCorrect` and never ships the bank |
+
+Each question (canonical model):
 
 ```
 question:
-  id            # stable unique id
-  domain        # "D1".."D5" — drives weighted selection and per-domain stats
-  prompt        # the question stem
-  explanation   # shown in feedback (practice) and review (both modes)
-  options:      # exactly 4
-    - id
-      isCorrect # exactly one option is true
-      phrasings # array of 2-3 equivalent wordings of this option
+  id              # stable unique id
+  domain          # "d1".."d5" — drives weighted selection and per-domain stats
+  explanation     # shown in feedback (practice) and review (both modes)
+  stem:
+    practice      # 1-2 stem wordings (client)
+    timed         # 2-3 stem wordings (server only) — distinct from practice
+  options:        # exactly 4
+    - isCorrect   # exactly one option is true
+      phrasings:
+        practice  # 1-2 equivalent wordings (client)
+        timed     # 2-3 equivalent wordings (server only) — distinct from practice
 ```
 
-**Anti-memorization mechanic:** each option carries 2–3 interchangeable phrasings that
-mean the same thing. On each render the engine picks one phrasing per option at random.
-The correct *option* is always correct regardless of which phrasing shows, so users learn
-the concept rather than memorizing a literal answer string. Option display order is also
-shuffled per render.
+The `practice` and `timed` wordings are **deliberately distinct strings** (both stems and
+all four option texts), so the timed exam presents different question/answer text than
+practice. A user who memorizes every practice answer gains nothing for the timed exam: the
+timed wordings, option order, and answer key live only on the server (see Firebase
+Functions).
 
-Bank size ~100 questions; each timed/practice session draws a domain-weighted random 60.
+**Anti-memorization mechanic:** within a mode, each option carries 1–3 interchangeable
+phrasings that mean the same thing; on each render the engine picks one phrasing per option
+at random and shuffles option order. The correct *option* is always correct regardless of
+which phrasing shows, so users learn the concept rather than a literal answer string.
+
+For the placeholder phase the two sets are authored as disjoint pools in their two files
+(practice pools in the client data file, timed pools in the Functions bank). When real
+content arrives, each authored question carries both sets, and the split is preserved by
+keeping the `timed` set **exclusively** in `functions/` — it is never imported by the web
+build.
+
+Bank size ~100 questions; each timed/practice session draws a domain-weighted random 60
+from its own content set.
 
 ## Firebase Functions
 
-The answer key must never ship to the client, and leaderboard scores must not be
-forgeable. Three scoped callable functions:
+The timed answer key must never ship to the client, and leaderboard scores must not be
+forgeable. The `timed` content set (stems, option phrasings, and `isCorrect`) lives
+exclusively in the server-only bank (`functions/practiceBank.js`). Three scoped callable
+functions:
 
-- **`startExam(mode)`** — server performs the domain-weighted selection of 60 questions,
-  strips `isCorrect` from options, picks/locks the phrasing + option order for the
-  session, records a session document, and returns the sanitized question set + a
-  `sessionId`.
+- **`startExam(mode)`** — server performs the domain-weighted selection of 60 questions
+  **from the server-only timed bank**, strips `isCorrect` from options, picks/locks the
+  phrasing + option order for the session, records a session document, and returns the
+  sanitized question set + a `sessionId`. The client never receives the timed answer key.
 - **`submitExam(sessionId, answers)`** — server scores against the stored session, returns
   the result (overall %, pass/fail, per-domain breakdown, and the correct answers +
   explanations for the review screen), and persists the completed attempt.
