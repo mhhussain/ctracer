@@ -19,7 +19,7 @@ function daysUntil(dateStr) {
   return Math.ceil((new Date(dateStr) - new Date()) / 86_400_000)
 }
 
-export default function PageTopbar() {
+export default function PageTopbar({ onMenuClick }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { progress, setExamDate } = useProgress()
@@ -47,6 +47,10 @@ export default function PageTopbar() {
         ? `Exam: ${examDays}d`
         : 'Exam: Today!'
       : 'Exam day'
+  const examBtnShort =
+    examDays !== null
+      ? examDays > 0 ? `${examDays}d` : 'Today!'
+      : '—'
 
   function handleSave() {
     if (dateInput) setExamDate(dateInput)
@@ -62,16 +66,34 @@ export default function PageTopbar() {
   return (
     <>
       <header className="topbar">
-        <div>
-          <h1 className="topbar-title">{meta.title}</h1>
-          {meta.sub && <div className="topbar-sub">{meta.sub}</div>}
+        <div className="topbar-left">
+          <button
+            className="topbar-hamburger"
+            onClick={onMenuClick}
+            aria-label="Open menu"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <rect y="3" width="18" height="2" rx="1" fill="currentColor" />
+              <rect y="8" width="18" height="2" rx="1" fill="currentColor" />
+              <rect y="13" width="14" height="2" rx="1" fill="currentColor" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="topbar-title">{meta.title}</h1>
+            {meta.sub && <div className="topbar-sub">{meta.sub}</div>}
+          </div>
         </div>
         <div className="topbar-right">
-          <button className="top-btn" onClick={() => navigate('/concepts')}>
+          <button className="top-btn topbar-ref-btn" onClick={() => navigate('/concepts')}>
             ✦ Reference
           </button>
-          <button className="top-btn primary" onClick={() => { setDateInput(progress.examDate ?? ''); setModalOpen(true) }}>
-            📅 {examBtnLabel}
+          <button
+            className="top-btn primary"
+            onClick={() => { setDateInput(progress.examDate ?? ''); setModalOpen(true) }}
+          >
+            📅{' '}
+            <span className="topbar-exam-long">{examBtnLabel}</span>
+            <span className="topbar-exam-short">{examBtnShort}</span>
           </button>
         </div>
       </header>

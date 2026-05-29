@@ -1,12 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import Card from './Card'
 import ProgressBar from './ProgressBar'
 import DomainTag from './DomainTag'
 import StatTile from './StatTile'
 import Pill from './Pill'
 import Checkbox from './Checkbox'
+import Sidebar from './Sidebar'
+import PageTopbar from './PageTopbar'
 
 describe('Card', () => {
   it('renders children', () => {
@@ -51,5 +54,51 @@ describe('Checkbox', () => {
     render(<Checkbox checked={false} onChange={onChange} label="Task 1" sub="2h" />)
     await userEvent.click(screen.getByRole('checkbox'))
     expect(onChange).toHaveBeenCalled()
+  })
+})
+
+describe('Sidebar', () => {
+  it('does not have is-open class by default', () => {
+    const { container } = render(
+      <MemoryRouter><Sidebar /></MemoryRouter>
+    )
+    expect(container.querySelector('.sidebar')).not.toHaveClass('is-open')
+  })
+
+  it('has is-open class when isOpen prop is true', () => {
+    const { container } = render(
+      <MemoryRouter><Sidebar isOpen={true} onClose={() => {}} /></MemoryRouter>
+    )
+    expect(container.querySelector('.sidebar')).toHaveClass('is-open')
+  })
+
+  it('calls onClose when a nav link is clicked', async () => {
+    const onClose = vi.fn()
+    render(
+      <MemoryRouter>
+        <Sidebar isOpen={true} onClose={onClose} />
+      </MemoryRouter>
+    )
+    await userEvent.click(document.querySelector('.sb-item'))
+    expect(onClose).toHaveBeenCalled()
+  })
+})
+
+describe('PageTopbar', () => {
+  it('renders a hamburger menu button', () => {
+    render(<MemoryRouter><PageTopbar onMenuClick={() => {}} /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: /open menu/i })).toBeInTheDocument()
+  })
+
+  it('calls onMenuClick when hamburger button is clicked', async () => {
+    const onMenuClick = vi.fn()
+    render(<MemoryRouter><PageTopbar onMenuClick={onMenuClick} /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: /open menu/i }))
+    expect(onMenuClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders short exam label span', () => {
+    const { container } = render(<MemoryRouter><PageTopbar onMenuClick={() => {}} /></MemoryRouter>)
+    expect(container.querySelector('.topbar-exam-short')).toBeInTheDocument()
   })
 })

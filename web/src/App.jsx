@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import PageTopbar from './components/PageTopbar'
@@ -13,11 +14,17 @@ import Profile from './screens/Profile'
 import MobileDownload from './screens/MobileDownload'
 
 export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
     <div className="app-layout">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div
+        className={`sidebar-backdrop${sidebarOpen ? ' is-open' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
       <main className="app-main">
-        <PageTopbar />
+        <PageTopbar onMenuClick={() => setSidebarOpen(true)} />
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/blueprint" element={<ExamBlueprint />} />

@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
 import { useProgress } from '../hooks/useProgress'
+import { useAuth } from '../hooks/useAuth'
 import ProgressBar from './ProgressBar'
 import { DOMAINS, PHASES } from '../data/index'
 
@@ -35,9 +36,10 @@ function SidebarExamBar({ examDate }) {
   )
 }
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const { theme, toggleTheme } = useTheme()
   const { progress, stats } = useProgress()
+  const { user } = useAuth()
 
   const activePhase =
     PHASES.find((p) => p.tasks.some((t) => !progress.tasks[t.id])) ??
@@ -45,7 +47,7 @@ export default function Sidebar() {
   const hoursLeft = Math.round((stats.hoursTotal - stats.hoursDone) * 10) / 10
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${isOpen ? ' is-open' : ''}`}>
       <div className="sb-brand">
         <div className="sb-logo">
           <svg viewBox="0 0 24 24" width="20" height="20">
@@ -74,6 +76,7 @@ export default function Sidebar() {
             to={to}
             end={end}
             className={({ isActive }) => `sb-item${isActive ? ' is-active' : ''}`}
+            onClick={onClose}
           >
             <span className="sb-glyph">{glyph}</span>
             <span>{label}</span>
@@ -86,6 +89,7 @@ export default function Sidebar() {
             key={d.id}
             to={`/domain/${d.id}`}
             className={({ isActive }) => `sb-item sb-item-sub${isActive ? ' is-active' : ''}`}
+            onClick={onClose}
           >
             <span className={`sb-domain-dot dtag-${d.color}`} />
             <span className="sb-domain-num">D{d.num}</span>
@@ -100,6 +104,7 @@ export default function Sidebar() {
             key={to}
             to={to}
             className={({ isActive }) => `sb-item${isActive ? ' is-active' : ''}`}
+            onClick={onClose}
           >
             <span className="sb-glyph">{glyph}</span>
             <span>{label}</span>
@@ -110,9 +115,10 @@ export default function Sidebar() {
           to="/profile"
           className={({ isActive }) => `sb-item${isActive ? ' is-active' : ''}`}
           style={{ marginTop: 'auto' }}
+          onClick={onClose}
         >
           <span className="sb-glyph">👤</span>
-          <span>Profile</span>
+          <span>{user ? (user.displayName || user.email) : 'Log in'}</span>
         </NavLink>
       </nav>
 
