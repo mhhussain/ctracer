@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
 import { useProgress } from '../hooks/useProgress'
+import { useAuth } from '../hooks/useAuth'
 import ProgressBar from './ProgressBar'
 import { DOMAINS, PHASES } from '../data/index'
 
@@ -20,6 +21,7 @@ const PREP_ITEMS = [
 export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const { theme, toggleTheme } = useTheme()
   const { progress, stats } = useProgress()
+  const { user } = useAuth()
 
   const activePhase =
     PHASES.find((p) => p.tasks.some((t) => !progress.tasks[t.id])) ??
@@ -98,7 +100,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
           onClick={onClose}
         >
           <span className="sb-glyph">👤</span>
-          <span>Profile</span>
+          <span>{user ? (user.displayName || user.email) : 'Log in'}</span>
         </NavLink>
       </nav>
 
