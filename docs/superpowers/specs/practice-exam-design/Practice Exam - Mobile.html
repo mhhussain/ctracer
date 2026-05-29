@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280" />
+<title>Practice Exam — Mobile</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="practice.css?v=2" />
+<style>
+  html, body { height: auto; min-height: 100%; }
+  body { background: var(--bg); }
+  .gallery { max-width: 1280px; margin: 0 auto; padding: 48px 32px 96px; }
+  .ghead { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 28px; }
+  .ghead-eyebrow {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;
+  }
+  .ghead h1 { font-size: 34px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 10px; }
+  .ghead p { font-size: 15px; color: var(--text-2); max-width: 70ch; margin: 0; line-height: 1.6; }
+  .ghead code { font-family: var(--font-mono); font-size: 13px; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; color: var(--accent); }
+  .gsection { margin-bottom: 56px; }
+  .gsec {
+    font-size: 13px; font-family: var(--font-mono); color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500;
+    margin: 0 0 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  }
+  .grow { display: flex; flex-wrap: wrap; gap: 40px; }
+  .gframe { width: 384px; }
+  .gcap {
+    font-size: 12.5px; color: var(--text-3); line-height: 1.5;
+    margin-top: 16px; max-width: 384px;
+  }
+
+  /* mobile screen scaffolding inside frames */
+  .pe-mobile-screen {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    padding: 56px 16px 40px;
+  }
+  .pe-m-top { margin-bottom: 18px; }
+  .pe-m-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .pe-m-tabs { width: 100%; justify-content: space-between; }
+  .pe-m-tabs .pe-tab { flex: 1; text-align: center; }
+
+  /* anchor the fixed-position UI to the frame, not the browser viewport */
+  .frame-scope .pe-nav { position: absolute !important; left: 0; right: 0; bottom: 0; }
+  .frame-scope .modal-veil { position: absolute !important; inset: 0; border-radius: 46px; padding: 18px; }
+  .frame-scope .modal { max-height: 90%; }
+  .pe-mobile-screen:has(.pe-results) { padding-top: 44px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="data.js"></script>
+<script src="practice-data.js"></script>
+<script type="text/babel" src="ios-frame.jsx?v=3"></script>
+<script type="text/babel" src="practice-core.jsx?v=3"></script>
+<script type="text/babel" src="practice-flow.jsx?v=3"></script>
+<script type="text/babel" src="practice-screen.jsx?v=3"></script>
+<script type="text/babel" src="mobile-gallery.jsx?v=3"></script>
+</body>
+</html>
