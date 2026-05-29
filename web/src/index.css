@@ -2180,6 +2180,14 @@ code, kbd {
   }
 
   /* ── Dashboard ── */
+  /* Explicitly re-declare grid collapses here because the 960px block uses
+     modern range syntax (width<=960px) which Safari <16.4 doesn't parse. */
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .hero {
     grid-template-columns: 1fr;
   }
@@ -2203,6 +2211,9 @@ code, kbd {
   .dom-row-q  { display: none; }
 
   /* ── Exam Blueprint ── */
+  .bp-grid {
+    grid-template-columns: 1fr;
+  }
   .bp-donut {
     grid-template-columns: 1fr;
     justify-items: center;
