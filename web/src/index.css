@@ -2188,6 +2188,10 @@ code, kbd {
   .stat-row {
     grid-template-columns: repeat(2, 1fr);
   }
+  .dom-prog,
+  .today {
+    grid-column: 1 / -1;
+  }
   .hero {
     grid-template-columns: 1fr;
   }
