@@ -9,6 +9,7 @@ import StatTile from './StatTile'
 import Pill from './Pill'
 import Checkbox from './Checkbox'
 import Sidebar from './Sidebar'
+import PageTopbar from './PageTopbar'
 
 describe('Card', () => {
   it('renders children', () => {
@@ -80,5 +81,24 @@ describe('Sidebar', () => {
     )
     await userEvent.click(document.querySelector('.sb-item'))
     expect(onClose).toHaveBeenCalled()
+  })
+})
+
+describe('PageTopbar', () => {
+  it('renders a hamburger menu button', () => {
+    render(<MemoryRouter><PageTopbar onMenuClick={() => {}} /></MemoryRouter>)
+    expect(screen.getByRole('button', { name: /open menu/i })).toBeInTheDocument()
+  })
+
+  it('calls onMenuClick when hamburger button is clicked', async () => {
+    const onMenuClick = vi.fn()
+    render(<MemoryRouter><PageTopbar onMenuClick={onMenuClick} /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: /open menu/i }))
+    expect(onMenuClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders short exam label span', () => {
+    const { container } = render(<MemoryRouter><PageTopbar onMenuClick={() => {}} /></MemoryRouter>)
+    expect(container.querySelector('.topbar-exam-short')).toBeInTheDocument()
   })
 })

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { subscribeToProgress, saveProgress, clearProgress, resetProgress, DEFAULT_PROGRESS } from './storage'
 
-const DEFAULT = { courses: {}, projects: {}, tasks: {}, exam_day: {}, practiceScore: null }
+const DEFAULT = { courses: {}, projects: {}, tasks: {}, exam_day: {}, practiceScore: null, examDate: null }
 
 // vi.mock factories are hoisted — variables must be created with vi.hoisted()
 const { mockUnsubscribe, mockOnSnapshot, mockSetDoc, mockDoc } = vi.hoisted(() => ({

@@ -12,6 +12,7 @@ import KeyConcepts from './screens/KeyConcepts'
 import ExamDayChecklist from './screens/ExamDayChecklist'
 import Profile from './screens/Profile'
 import MobileDownload from './screens/MobileDownload'
+import PageTopbar from './components/PageTopbar'
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -25,6 +26,7 @@ export default function App() {
           onClick={() => setSidebarOpen(false)}
         />
         <main className="app-main">
+          <PageTopbar onMenuClick={() => setSidebarOpen(true)} />
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/blueprint" element={<ExamBlueprint />} />

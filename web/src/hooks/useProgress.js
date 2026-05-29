@@ -73,6 +73,11 @@ export function useProgress() {
     [update],
   )
 
+  const setExamDate = useCallback(
+    (date) => update((p) => ({ ...p, examDate: date })),
+    [update],
+  )
+
   const coursesDone = COURSES.filter((c) => progress.courses[c.id]).length
   const partnerDone = COURSES.filter((c) => c.partnerRequired && progress.courses[c.id]).length
   const partnerTotal = COURSES.filter((c) => c.partnerRequired).length
@@ -92,6 +97,7 @@ export function useProgress() {
     cycleProject,
     toggleExamDay,
     setPracticeScore,
+    setExamDate,
     stats: {
       coursesDone,
       coursesTotal: COURSES.length,
