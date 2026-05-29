@@ -10,6 +10,11 @@ describe('App routing', () => {
     expect(screen.getByText('ctracer')).toBeInTheDocument()
   })
 
+  it('renders sidebar-backdrop element', () => {
+    const { container } = render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>)
+    expect(container.querySelector('.sidebar-backdrop')).toBeInTheDocument()
+  })
+
   it('sidebar has links to all primary screens', () => {
     render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>)
     expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument()

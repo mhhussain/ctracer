@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './lib/AuthContext'
 import Sidebar from './components/Sidebar'
@@ -13,10 +14,16 @@ import Profile from './screens/Profile'
 import MobileDownload from './screens/MobileDownload'
 
 export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
     <AuthProvider>
       <div className="app-layout">
-        <Sidebar />
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div
+          className={`sidebar-backdrop${sidebarOpen ? ' is-open' : ''}`}
+          onClick={() => setSidebarOpen(false)}
+        />
         <main className="app-main">
           <Routes>
             <Route path="/" element={<Dashboard />} />
