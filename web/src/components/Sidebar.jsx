@@ -17,7 +17,7 @@ const PREP_ITEMS = [
   { to: '/exam-day', label: 'Exam Day', glyph: '★' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const { theme, toggleTheme } = useTheme()
   const { progress, stats } = useProgress()
 
@@ -27,7 +27,7 @@ export default function Sidebar() {
   const hoursLeft = stats.hoursTotal - stats.hoursDone
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${isOpen ? ' is-open' : ''}`}>
       <div className="sb-brand">
         <div className="sb-logo">
           <svg viewBox="0 0 24 24" width="20" height="20">
@@ -56,6 +56,7 @@ export default function Sidebar() {
             to={to}
             end={end}
             className={({ isActive }) => `sb-item${isActive ? ' is-active' : ''}`}
+            onClick={onClose}
           >
             <span className="sb-glyph">{glyph}</span>
             <span>{label}</span>
@@ -68,6 +69,7 @@ export default function Sidebar() {
             key={d.id}
             to={`/domain/${d.id}`}
             className={({ isActive }) => `sb-item sb-item-sub${isActive ? ' is-active' : ''}`}
+            onClick={onClose}
           >
             <span className={`sb-domain-dot dtag-${d.color}`} />
             <span className="sb-domain-num">D{d.num}</span>
@@ -82,6 +84,7 @@ export default function Sidebar() {
             key={to}
             to={to}
             className={({ isActive }) => `sb-item${isActive ? ' is-active' : ''}`}
+            onClick={onClose}
           >
             <span className="sb-glyph">{glyph}</span>
             <span>{label}</span>
@@ -92,6 +95,7 @@ export default function Sidebar() {
           to="/profile"
           className={({ isActive }) => `sb-item${isActive ? ' is-active' : ''}`}
           style={{ marginTop: 'auto' }}
+          onClick={onClose}
         >
           <span className="sb-glyph">👤</span>
           <span>Profile</span>
