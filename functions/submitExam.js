@@ -1,0 +1,1 @@
+export const submitExam = null
