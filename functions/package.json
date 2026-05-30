@@ -1,7 +1,7 @@
 {
   "name": "ctracer-functions",
   "description": "Practice Exam callable functions (scoped to the practice-exam feature)",
-  "engines": { "node": "20" },
+  "engines": { "node": "22" },
   "main": "index.js",
   "type": "module",
   "dependencies": {
