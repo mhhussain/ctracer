@@ -32,8 +32,16 @@ One Firebase project serves both apps:
 - **Auth** — email/password and Google sign-in (optional for users)
 - **Firestore** — persisted progress for signed-in users
 - **Hosting** — web app deployment (`firebase deploy`)
+- **Functions** — callable functions for the Practice Exam **timed mode** only (`functions/`): `startExam`, `submitExam`, `postToLeaderboard`. These keep the timed answer key server-side. Deployed on merge to `main` (see `deploy-production.yml`).
 
-No Firebase Functions are used. Both clients connect directly to Firestore and Auth via their SDKs.
+Outside of the timed-exam flow, both clients connect directly to Firestore and Auth via their SDKs — there is no general-purpose backend.
+
+### Test account
+A throwaway account for exercising signed-in flows (timed mode, leaderboard):
+- **Email:** `test@test.com`
+- **Password:** `testtest`
+
+(Disposable test credentials for a study app — not a real user. If this repo is ever made public, move these to a gitignored note instead.)
 
 ## Storage Strategy
 

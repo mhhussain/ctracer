@@ -22,7 +22,7 @@ jobs:
         working-directory: web
 
       - name: Test
-        run: npm test -- run
+        run: npm test
         working-directory: web
 
       - name: Build
@@ -42,3 +42,17 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_IAMMOO_CTRACER }}
           channelId: live
           projectId: iammoo-ctracer
+
+      # Functions deploy runs only here (push to main), never on PR previews.
+      - name: Install functions dependencies
+        run: npm install
+        working-directory: functions
+
+      - name: Deploy Functions
+        working-directory: functions
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          npx --yes firebase-tools deploy --only functions --project iammoo-ctracer --non-interactive --force
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_IAMMOO_CTRACER }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json

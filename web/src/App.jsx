@@ -10,6 +10,7 @@ import Projects from './screens/Projects'
 import DomainDeepDive from './screens/DomainDeepDive'
 import KeyConcepts from './screens/KeyConcepts'
 import ExamDayChecklist from './screens/ExamDayChecklist'
+import PracticeExam from './screens/PracticeExam'
 import Profile from './screens/Profile'
 import MobileDownload from './screens/MobileDownload'
 
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/domain/:id" element={<DomainDeepDive />} />
           <Route path="/concepts" element={<KeyConcepts />} />
+          <Route path="/practice-exam" element={<PracticeExam />} />
           <Route path="/exam-day" element={<ExamDayChecklist />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/mobile" element={<MobileDownload />} />

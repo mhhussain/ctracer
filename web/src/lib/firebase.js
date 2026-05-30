@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 
 const app = initializeApp({
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,3 +14,8 @@ const app = initializeApp({
 
 export const auth = getAuth(app)
 export const db = getFirestore(app)
+export const functions = getFunctions(app)
+
+if (import.meta.env.DEV) {
+  connectFunctionsEmulator(functions, 'localhost', 5001)
+}

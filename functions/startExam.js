@@ -1,0 +1,27 @@
+// functions/startExam.js
+import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { buildSession } from './practiceBank.js'
+
+export const startExam = onCall(async (req) => {
+  const mode = req.data?.mode
+  if (mode !== 'timed') {
+    throw new HttpsError('invalid-argument', 'startExam only supports timed mode; practice runs client-side')
+  }
+  if (!req.auth) {
+    throw new HttpsError('unauthenticated', 'Timed exams require sign-in')
+  }
+
+  const { instances, sanitized } = buildSession()
+  const db = getFirestore()
+  const ref = await db.collection('exam_sessions').add({
+    uid: req.auth?.uid || null,
+    mode,
+    instances,            // full instances incl. answer key — server only
+    createdAt: FieldValue.serverTimestamp(),
+    durationMs: mode === 'timed' ? 120 * 60 * 1000 : null,
+    submitted: false,
+  })
+
+  return { sessionId: ref.id, mode, questions: sanitized } // no isCorrect leaves the server
+})
