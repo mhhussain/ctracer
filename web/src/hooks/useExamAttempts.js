@@ -1,6 +1,6 @@
 // web/src/hooks/useExamAttempts.js
 // Auth-aware exam state. Part A: practice mode (client-side). Part B: timed mode (server-side via Functions).
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { useAuth } from './useAuth'
 import { db } from '../lib/firebase'
@@ -43,6 +43,7 @@ export function useExamAttempts() {
   const { user } = useAuth()
   const [attempts, setAttempts] = useState([])
   const [active, setActive] = useState(() => loadActive())
+  const activeRef = useRef(active)
   const [posted, setPosted] = useState(() => loadPosted())
   // Real Firestore leaderboard (Part B). Null while loading; falls back to SEED_LEADERBOARD.
   const [leaderboard, setLeaderboard] = useState(null)
@@ -76,6 +77,11 @@ export function useExamAttempts() {
     return unsub
   }, [user])
 
+  // keep activeRef in sync with active state (avoids state-setter side-effects)
+  useEffect(() => {
+    activeRef.current = active
+  }, [active])
+
   // persist the active attempt on every change (resume-after-refresh)
   useEffect(() => {
     if (active) saveActive(active)
@@ -104,6 +110,7 @@ export function useExamAttempts() {
       return
     }
     // timed mode: call the server to get a session + sanitized questions (no answer key)
+    if (activeRef.current) return  // don't overwrite an in-progress attempt
     try {
       const { data } = await startExamFn({ mode: 'timed' })
       // Build the active attempt from server-supplied questions.
@@ -137,11 +144,7 @@ export function useExamAttempts() {
   // submit: practice scores client-side; timed calls submitExam on the server
   const submit = useCallback(async () => {
     let record = null
-    let currentActive = null
-    setActive((a) => {
-      currentActive = a
-      return a
-    })
+    const currentActive = activeRef.current
     if (!currentActive) return null
 
     if (currentActive.mode === 'practice') {
