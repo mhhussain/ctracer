@@ -14,6 +14,7 @@ export const postToLeaderboard = onCall(async (req) => {
   let best = null
   attemptsSnap.forEach((d) => {
     const s = d.data().score
+    if (typeof s !== 'number' || !isFinite(s)) return
     if (best == null || s > best) best = s
   })
   if (best == null) throw new HttpsError('failed-precondition', 'no timed score to post')
