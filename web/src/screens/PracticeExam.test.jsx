@@ -14,13 +14,23 @@ vi.mock('firebase/auth', () => ({
   getAuth: vi.fn(),
 }))
 
-// Mock firestore so subscribeToAttempts doesn't blow up
+// Mock firestore so subscribeToAttempts + the leaderboard subscription don't blow up.
+// getFirestore is needed because src/lib/firebase.js calls it at module load.
 vi.mock('firebase/firestore', () => ({
+  getFirestore: vi.fn(() => ({})),
   collection: vi.fn(),
   addDoc: vi.fn(),
   onSnapshot: vi.fn(() => () => {}),
   query: vi.fn(),
   orderBy: vi.fn(),
+}))
+
+// Mock functions so firebase.js init (getFunctions + connectFunctionsEmulator)
+// and the exam callables don't require a live backend in tests.
+vi.mock('firebase/functions', () => ({
+  getFunctions: vi.fn(() => ({})),
+  connectFunctionsEmulator: vi.fn(),
+  httpsCallable: vi.fn(() => vi.fn()),
 }))
 
 const wrap = (ui) => render(<AuthProvider><MemoryRouter>{ui}</MemoryRouter></AuthProvider>)

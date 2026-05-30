@@ -2,10 +2,10 @@
 // Practice Exam hub controller. Ported from
 // docs/superpowers/specs/practice-exam-design/practice-screen.jsx (ScreenPractice),
 // using real auth (useAuth) and real persistence (useExamAttempts).
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { useExamAttempts, bestTimed, SEED_LEADERBOARD } from '../hooks/useExamAttempts'
+import { useExamAttempts, bestTimed } from '../hooks/useExamAttempts'
 import { DOMAINS } from '../data/index'
 import PracticeHub from '../components/practice/PracticeHub'
 import ExamRunner from '../components/practice/ExamRunner'
@@ -24,7 +24,7 @@ export default function PracticeExam() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const ex = useExamAttempts()
-  const { attempts, active, posted } = ex
+  const { attempts, active, leaderboard, posted: localPosted } = ex
 
   const [sub, setSub] = useState('hub') // hub | runner | results | history | leaderboard
   const [review, setReview] = useState(null)
@@ -74,13 +74,19 @@ export default function PracticeExam() {
     }
   }, [attempts])
 
+  // The live Firestore leaderboard (from the hook) is the source of truth; your
+  // own row is flagged isYou. Fall back to a locally-posted entry so a fresh post
+  // surfaces immediately, before the Firestore snapshot lands.
   const board = useMemo(() => {
-    const seed = SEED_LEADERBOARD.map((e) => ({ ...e }))
-    let all = seed
-    if (posted) all = [...seed, { ...posted, isYou: true }]
-    all.sort((a, b) => b.score - a.score || new Date(a.date) - new Date(b.date))
-    return all
-  }, [posted])
+    if (localPosted && !leaderboard.some((e) => e.isYou)) {
+      return [...leaderboard, { ...localPosted, isYou: true }]
+        .sort((a, b) => b.score - a.score || new Date(a.date) - new Date(b.date))
+    }
+    return leaderboard
+  }, [leaderboard, localPosted])
+
+  // "Have I posted?" — prefer the live board's own row, fall back to local state.
+  const posted = useMemo(() => board.find((e) => e.isYou) || localPosted || null, [board, localPosted])
 
   const yourBest = useMemo(() => {
     const b = bestTimed(attempts)

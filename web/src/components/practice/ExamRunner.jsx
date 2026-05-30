@@ -8,7 +8,11 @@ import DomainChip from './DomainChip';
 export default function ExamRunner({ attempt, current, secondsLeft, onSelect, onFlag, onNav, onPrev, onNext, onSubmit, onExit, defaultNavOpen }) {
   const [navOpen, setNavOpen] = useState(!!defaultNavOpen);
   const inst = attempt.instances[current];
-  const r = renderInstance(inst);
+  // Timed instances arrive pre-resolved from the server (no client answer key);
+  // practice instances are resolved locally via renderInstance.
+  const r = inst._serverResolved
+    ? { stem: inst.stem, opts: inst.opts, explanation: null }
+    : renderInstance(inst);
   const total = attempt.instances.length;
   const selected = attempt.answers[current];
   const answered = selected !== undefined;

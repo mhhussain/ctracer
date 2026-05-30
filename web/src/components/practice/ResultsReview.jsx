@@ -12,7 +12,28 @@ export default function ResultsReview({ attempt, posted, onPost, onRetake, onHom
   const isTimed = attempt.mode === "timed";
   const letters = ["A", "B", "C", "D"];
 
-  const rows = attempt.instances.map((inst, i) => {
+  // Timed attempts persisted to Firestore store only the score summary (the
+  // question instances carry the answer key and are intentionally not saved), so
+  // a timed attempt reopened from History has no per-question detail to rebuild.
+  const instances = attempt.instances ?? [];
+  const hasDetail = instances.length > 0;
+
+  const rows = instances.map((inst, i) => {
+    // Timed instances are scored server-side: the answer key and per-question
+    // result arrive in attempt.review, not from the client-side renderInstance.
+    if (inst._serverResolved) {
+      const rev = attempt.review?.[i] ?? {};
+      const sel = rev.selectedPos == null ? undefined : rev.selectedPos;
+      return {
+        i,
+        inst,
+        r: { stem: inst.stem, opts: inst.opts, explanation: rev.explanation },
+        sel,
+        correctPos: rev.correctDisplayPos,
+        isCorrect: !!rev.isCorrect,
+        skipped: sel === undefined,
+      };
+    }
     const r = renderInstance(inst);
     const sel = attempt.answers[i];
     const correctPos = r.opts.findIndex((o) => o.correct);
@@ -72,7 +93,9 @@ export default function ResultsReview({ attempt, posted, onPost, onRetake, onHom
           </div>
         </div>
         <div className="pe-review-list">
-          {shown.length === 0 ? (
+          {!hasDetail ? (
+            <div className="pe-empty pe-empty-sm"><div className="pe-empty-title">Question breakdown unavailable</div><div className="pe-empty-sub">Per-question review is available right after you submit. This past timed attempt kept only its score summary.</div></div>
+          ) : shown.length === 0 ? (
             <div className="pe-empty pe-empty-sm"><div className="pe-empty-title">Nothing here</div><div className="pe-empty-sub">No questions match this filter.</div></div>
           ) : shown.map((row) => (
             <div key={row.i} className={`pe-rev-item ${row.isCorrect ? "is-correct" : "is-wrong"}`}>
