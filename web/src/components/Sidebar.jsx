@@ -15,6 +15,7 @@ const GENERAL_ITEMS = [
 
 const PREP_ITEMS = [
   { to: '/concepts', label: 'Key Concepts', glyph: '≡' },
+  { to: '/practice-exam', label: 'Practice Exam', glyph: '◆' },
   { to: '/exam-day', label: 'Exam Day', glyph: '★' },
 ]
 
