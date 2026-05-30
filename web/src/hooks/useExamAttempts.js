@@ -1,6 +1,10 @@
 // web/src/hooks/useExamAttempts.js
-import { useCallback, useEffect, useState } from 'react'
+// Auth-aware exam state. Part A: practice mode (client-side). Part B: timed mode (server-side via Functions).
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { useAuth } from './useAuth'
+import { db } from '../lib/firebase'
+import { startExamFn, submitExamFn, postToLeaderboardFn } from '../lib/examFunctions'
 import { createAttempt, scoreAttempt } from '../lib/practiceEngine'
 import {
   subscribeToAttempts, addRemoteAttempt, addLocalAttempt,
@@ -8,8 +12,8 @@ import {
   loadPosted, savePosted, clearPosted,
 } from '../lib/examStorage'
 
-// Seeded leaderboard — ported from the design's SEED_LEADERBOARD.
-// Part A renders these directly; Part B replaces with a Firestore collection.
+// Seeded leaderboard — used as fallback while Firestore data loads or if empty.
+// Part A rendered these directly; Part B replaces with a real Firestore subscription.
 export const SEED_LEADERBOARD = [
   { handle: 'agentsmith', score: 97, date: '2026-05-21', anon: false },
   { handle: 'mcp_maxine', score: 95, date: '2026-05-19', anon: false },
@@ -39,7 +43,10 @@ export function useExamAttempts() {
   const { user } = useAuth()
   const [attempts, setAttempts] = useState([])
   const [active, setActive] = useState(() => loadActive())
+  const activeRef = useRef(active)
   const [posted, setPosted] = useState(() => loadPosted())
+  // Real Firestore leaderboard (Part B). Null while loading; falls back to SEED_LEADERBOARD.
+  const [leaderboard, setLeaderboard] = useState(null)
 
   // subscribe to completed attempts (local or Firestore)
   useEffect(() => {
@@ -47,15 +54,39 @@ export function useExamAttempts() {
     return unsub
   }, [user])
 
+  // subscribe to real leaderboard from Firestore
+  useEffect(() => {
+    const ref = collection(db, 'leaderboard')
+    const q = query(ref, orderBy('bestScore', 'desc'))
+    const unsub = onSnapshot(q, (snap) => {
+      const rows = snap.docs.map((d) => {
+        const data = d.data()
+        return {
+          handle: data.anonymous ? 'Anonymous' : (data.displayName || 'Anonymous'),
+          score: data.bestScore,
+          anon: data.anonymous,
+          date: data.updatedAt?.toDate?.().toISOString().slice(0, 10) || todayISO(),
+          isYou: user?.uid === d.id,
+        }
+      })
+      setLeaderboard(rows.length > 0 ? rows : SEED_LEADERBOARD)
+    }, () => {
+      // on error (e.g. offline), fall back to seed
+      setLeaderboard(SEED_LEADERBOARD)
+    })
+    return unsub
+  }, [user])
+
+  // keep activeRef in sync with active state (avoids state-setter side-effects)
+  useEffect(() => {
+    activeRef.current = active
+  }, [active])
+
   // persist the active attempt on every change (resume-after-refresh)
   useEffect(() => {
     if (active) saveActive(active)
     else clearActive()
   }, [active])
-
-  const startAttempt = useCallback((mode) => {
-    setActive(createAttempt(mode))
-  }, [])
 
   const discardActive = useCallback(() => setActive(null), [])
 
@@ -72,42 +103,113 @@ export function useExamAttempts() {
     setActive((a) => (a ? { ...a, flags: { ...a.flags, [i]: !a.flags[i] } } : a))
   }, [])
 
-  // returns the completed attempt record (so the screen can show results)
+  // startAttempt: practice stays client-side; timed goes through the server
+  const startAttempt = useCallback(async (mode) => {
+    if (mode === 'practice') {
+      setActive(createAttempt('practice'))
+      return
+    }
+    // timed mode: call the server to get a session + sanitized questions (no answer key)
+    if (activeRef.current) return  // don't overwrite an in-progress attempt
+    try {
+      const { data } = await startExamFn({ mode: 'timed' })
+      // Build the active attempt from server-supplied questions.
+      // questions[i] = { qid, domain, stem (string), opts: [{ text }] }
+      // We store them as "instances" with the same shape the runner expects,
+      // but stem/opts are already resolved strings (not array indices).
+      const instances = data.questions.map((q, i) => ({
+        qid: q.qid,
+        domain: q.domain,
+        stem: q.stem,
+        opts: q.opts, // [{ text }] — no correct field
+        _serverResolved: true, // flag so ExamRunner knows not to call renderInstance
+      }))
+      setActive({
+        id: data.sessionId,
+        sessionId: data.sessionId,
+        mode: 'timed',
+        createdAt: Date.now(),
+        durationMs: 120 * 60 * 1000,
+        instances,
+        answers: {},
+        flags: {},
+        submitted: false,
+      })
+    } catch (err) {
+      console.error('startExam failed', err)
+      throw err
+    }
+  }, [])
+
+  // submit: practice scores client-side; timed calls submitExam on the server
   const submit = useCallback(async () => {
     let record = null
-    setActive((a) => {
-      if (!a) return a
-      const score = scoreAttempt(a)
-      record = { ...a, submitted: true, submittedAt: Date.now(), score }
-      return null
-    })
-    if (!record) return null
-    if (user) await addRemoteAttempt(user, record)
-    else addLocalAttempt(record)
-    return record
+    const currentActive = activeRef.current
+    if (!currentActive) return null
+
+    if (currentActive.mode === 'practice') {
+      // Client-side scoring for practice
+      setActive(() => null)
+      const score = scoreAttempt(currentActive)
+      record = { ...currentActive, submitted: true, submittedAt: Date.now(), score }
+      if (user) await addRemoteAttempt(user, record)
+      else addLocalAttempt(record)
+      return record
+    }
+
+    // Timed mode: server-side scoring via submitExam
+    try {
+      const { data } = await submitExamFn({
+        sessionId: currentActive.sessionId,
+        answers: currentActive.answers,
+      })
+      setActive(() => null)
+      // data = { score: { pct, pass, perDomain, correct, total }, review: [...] }
+      record = {
+        ...currentActive,
+        submitted: true,
+        submittedAt: Date.now(),
+        score: data.score,
+        review: data.review,
+      }
+      // Server already persisted the attempt for signed-in users — just update local state
+      setAttempts((prev) => [record, ...prev])
+      return record
+    } catch (err) {
+      console.error('submitExam failed', err)
+      throw err
+    }
   }, [user])
 
-  const postToLeaderboard = useCallback((handle, anon) => {
-    const best = bestTimed(attempts)
-    if (!best) return
-    const entry = {
-      score: best.score.pct,
-      handle: anon ? 'Anonymous' : handle || user?.displayName || user?.email || 'you',
-      anon,
-      date: todayISO(),
+  const postToLeaderboard = useCallback(async (handle, anon) => {
+    if (!user) return
+    try {
+      await postToLeaderboardFn({ displayName: handle || user.displayName || '', anonymous: anon })
+      // leaderboard subscription will update automatically via onSnapshot
+    } catch (err) {
+      console.error('postToLeaderboard failed', err)
+      throw err
     }
-    savePosted(entry)
-    setPosted(entry)
-  }, [attempts, user])
+  }, [user])
 
   const unpost = useCallback(() => {
     clearPosted()
     setPosted(null)
+    // Note: removing from Firestore leaderboard requires a delete callable (Part B follow-up)
+    // For now, the local posted state is cleared; the Firestore entry persists until manually removed.
   }, [])
 
   return {
-    attempts, active, posted,
-    startAttempt, discardActive, select, flag, submit,
-    postToLeaderboard, unpost,
+    attempts,
+    active,
+    posted,
+    leaderboard: leaderboard ?? SEED_LEADERBOARD,
+    startAttempt,
+    discardActive,
+    select,
+    flag,
+    submit,
+    postToLeaderboard,
+    unpost,
   }
 }
