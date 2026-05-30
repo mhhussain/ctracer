@@ -197,10 +197,9 @@ export function buildSession() {
 
   const sanitized = instances.map((inst) => {
     const q = BANK.find((b) => b.id === inst.qid)
-    const opts = inst.optOrder.map((origIdx) => ({
-      origIdx,
-      text: q.options[origIdx].text[inst.phraseIdx[origIdx] % q.options[origIdx].text.length],
-      // NO `correct` field — answer key stays server-side
+    const opts = inst.optOrder.map((oIdx) => ({
+      text: q.options[oIdx].text[inst.phraseIdx[oIdx] % q.options[oIdx].text.length],
+      // NO `correct` field, NO `origIdx` — answer key stays server-side
     }))
     return {
       qid: inst.qid,

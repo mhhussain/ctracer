@@ -5,10 +5,10 @@ import { buildSession } from './practiceBank.js'
 
 export const startExam = onCall(async (req) => {
   const mode = req.data?.mode
-  if (mode !== 'timed' && mode !== 'practice') {
-    throw new HttpsError('invalid-argument', 'mode must be "timed" or "practice"')
+  if (mode !== 'timed') {
+    throw new HttpsError('invalid-argument', 'startExam only supports timed mode; practice runs client-side')
   }
-  if (mode === 'timed' && !req.auth) {
+  if (!req.auth) {
     throw new HttpsError('unauthenticated', 'Timed exams require sign-in')
   }
 
