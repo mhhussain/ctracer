@@ -42,7 +42,16 @@ export function subscribeToAttempts(user, callback) {
   const ref = collection(db, 'users', user.uid, 'exam_attempts')
   const q = query(ref, orderBy('submittedAt', 'desc'))
   return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    callback(snap.docs.map((d) => {
+      const data = d.data()
+      return {
+        id: d.id,
+        ...data,
+        // Server attempts store submittedAt as a Firestore Timestamp; locally we
+        // use epoch millis. Normalize so date formatting and sorting work for both.
+        submittedAt: data.submittedAt?.toMillis?.() ?? data.submittedAt ?? null,
+      }
+    }))
   })
 }
 
