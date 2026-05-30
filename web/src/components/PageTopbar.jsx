@@ -10,6 +10,7 @@ const ROUTE_META = {
   '/courses': { title: 'Courses', sub: 'Anthropic Academy · free via Skilljar' },
   '/projects': { title: 'Projects', sub: 'Hands-on builds that reinforce each domain' },
   '/concepts': { title: 'Key Concepts', sub: 'Quick reference for exam day' },
+  '/practice-exam': { title: 'Practice Exam', sub: '60 questions · timed or practice · 72% to pass' },
   '/exam-day': { title: 'Exam Day Checklist', sub: 'One last gut-check before you sit the exam' },
   '/profile': { title: 'Profile', sub: 'Account & settings' },
   '/mobile': { title: 'Mobile App', sub: 'Download the iOS & Android companion' },
