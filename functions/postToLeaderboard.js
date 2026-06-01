@@ -13,7 +13,8 @@ export const postToLeaderboard = onCall(async (req) => {
     .where('mode', '==', 'timed').get()
   let best = null
   attemptsSnap.forEach((d) => {
-    const s = d.data().score
+    // score is stored as { pct, pass, perDomain, correct, total } by submitExam
+    const s = d.data().score?.pct
     if (typeof s !== 'number' || !isFinite(s)) return
     if (best == null || s > best) best = s
   })
