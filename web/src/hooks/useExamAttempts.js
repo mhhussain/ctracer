@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { useAuth } from './useAuth'
 import { db } from '../lib/firebase'
-import { startExamFn, submitExamFn, postToLeaderboardFn } from '../lib/examFunctions'
-import { createAttempt, scoreAttempt } from '../lib/practiceEngine'
+import { startExamFn, submitExamFn, postToLeaderboardFn, getPracticeExamFn } from '../lib/examFunctions'
+import { scoreAttempt } from '../lib/practiceEngine'
 import {
   subscribeToAttempts, addRemoteAttempt, addLocalAttempt,
   loadActive, saveActive, clearActive,
@@ -106,7 +106,32 @@ export function useExamAttempts() {
   // startAttempt: practice stays client-side; timed goes through the server
   const startAttempt = useCallback(async (mode) => {
     if (mode === 'practice') {
-      setActive(createAttempt('practice'))
+      if (activeRef.current) return // don't overwrite an in-progress attempt
+      try {
+        const { data } = await getPracticeExamFn()
+        // questions[i] = { qid, domain, stem, opts:[{text,correct}], explanation }
+        const instances = data.questions.map((q) => ({
+          qid: q.qid,
+          domain: q.domain,
+          stem: q.stem,
+          opts: q.opts,
+          explanation: q.explanation,
+          _serverResolved: true,
+        }))
+        setActive({
+          id: `a${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          mode: 'practice',
+          createdAt: Date.now(),
+          durationMs: null,
+          instances,
+          answers: {},
+          flags: {},
+          submitted: false,
+        })
+      } catch (err) {
+        console.error('getPracticeExam failed', err)
+        throw err
+      }
       return
     }
     // timed mode: call the server to get a session + sanitized questions (no answer key)
