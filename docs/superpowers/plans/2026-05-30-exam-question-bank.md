@@ -16,7 +16,7 @@
 - `id` = `d{n}-{NNN}` (zero-padded, e.g. `d1-001`), unique, prefix matches `domain`.
 - `topic` must be an exact string from that domain's list in `TOPICS`.
 - `stem`: exactly 2 wordings (3 only for flagship questions). All wordings ask for the **same** answer.
-- `options`: exactly 4. Each has `practice: [..]` and `timed: [..]`, ~2 phrasings each. The practice and timed phrasing pools for a given option **must share no string** (the isolation rule the validator enforces).
+- `options`: exactly 4. Each has `practice: [..]` and `timed: [..]`. **First-pass variance budget:** the **correct** option (at `correctIndex`) carries 2 practice + 1 timed phrasing; each **distractor** carries 1 practice + 2 timed phrasings. The practice and timed phrasing pools for a given option **must share no string** (the isolation rule the validator enforces).
 - `correctIndex`: 0–3, points at the correct option in authoring order.
 - Distractors are **named anti-patterns**, not nonsense (spec §4).
 - `explanation`: one paragraph — why the correct option wins + why each distractor is a known anti-pattern.

@@ -133,8 +133,8 @@ These are targets, not quotas — coverage of every domain's topics comes first,
 
 ### Variance budget per question
 
-- **2** stem wordings (3 for flagship questions).
-- **~2** phrasings per option per mode (so each option has ~2 practice + ~2 timed phrasings).
+- **2** stem wordings (shared across modes; 3 for flagship questions).
+- Per option (first pass): the **correct** option carries **2 practice + 1 timed** phrasing; each **distractor** carries **1 practice + 2 timed** phrasings. High timed-mode variance comes from varying the three distractors per attempt while the correct answer stays a single canonical wording.
 - Option display order shuffled at render.
 
 ---
