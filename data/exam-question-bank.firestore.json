@@ -1,0 +1,3246 @@
+{
+  "d1-001": {
+    "domain": "d1",
+    "topic": "Multi-agent patterns",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "An orchestrator spawns five subagents that all read and write the same shared scratchpad document concurrently. Results are sometimes corrupted or silently overwritten. What is the best fix?",
+      "A team runs five parallel subagents that share one mutable working document; outputs occasionally clobber each other. Which change addresses the root cause?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Give each subagent an isolated workspace and have the orchestrator merge their returned results.",
+          "Isolate each subagent’s output, then let the orchestrator combine the results deterministically."
+        ],
+        "timed": [
+          "Hand every subagent its own scratch space and aggregate the separate outputs in the orchestrator."
+        ]
+      },
+      {
+        "practice": [
+          "Run the five subagents strictly one after another so writes never overlap."
+        ],
+        "timed": [
+          "Serialize all subagents end-to-end to avoid concurrent writes.",
+          "Force the subagents to run sequentially so no two write at once."
+        ]
+      },
+      {
+        "practice": [
+          "Add a retry that re-runs a subagent whenever the document looks corrupted."
+        ],
+        "timed": [
+          "Detect corruption and re-execute the affected subagent until it looks clean.",
+          "Add a corruption check that re-runs a subagent whenever the document looks wrong."
+        ]
+      },
+      {
+        "practice": [
+          "Switch every subagent to the most capable model so they make fewer mistakes."
+        ],
+        "timed": [
+          "Upgrade all subagents to the top model tier to reduce errors.",
+          "Move every subagent to the most capable model to cut mistakes."
+        ]
+      }
+    ],
+    "explanation": "Concurrent writes to shared mutable state cause races; the fix is isolation plus a single merge point, which preserves parallelism. Serializing throws away the whole reason to parallelize; retrying papers over the race without removing it; a bigger model does not fix a concurrency bug."
+  },
+  "d1-002": {
+    "domain": "d1",
+    "topic": "Multi-agent patterns",
+    "archetype": "critique-output",
+    "difficulty": "hard",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "An AI assistant proposes this design to answer one user question: a single orchestrator calls 12 specialized subagents in sequence, each receiving the full running transcript. What is the most serious problem?",
+      "Reviewing an AI-proposed architecture — 12 subagents chained sequentially, each fed the entire growing transcript, to handle a single query — what is the biggest issue?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Feeding the full transcript to 12 sequential agents explodes context, latency, and cost for a task that likely needs one or two; right-size the agent count and scope each agent’s context.",
+          "It is over-engineered: unbounded context growth across 12 serial calls for a job a single well-scoped agent could do."
+        ],
+        "timed": [
+          "Twelve serial agents each receiving the whole transcript balloon cost and latency for a task that needs far fewer; reduce the count and narrow each agent’s inputs."
+        ]
+      },
+      {
+        "practice": [
+          "It uses too few specialized agents; accuracy would improve with even more of them."
+        ],
+        "timed": [
+          "There are not enough agents — add more specialists for better accuracy.",
+          "Accuracy would rise with additional specialized agents in the chain."
+        ]
+      },
+      {
+        "practice": [
+          "The orchestrator should call the largest model for every subagent step."
+        ],
+        "timed": [
+          "Each subcall should be upgraded to the top model tier.",
+          "Promote every subagent call to the strongest model."
+        ]
+      },
+      {
+        "practice": [
+          "It is missing a dedicated agent whose only job is to format the final answer."
+        ],
+        "timed": [
+          "A separate formatting-only agent should be appended to the chain.",
+          "Add a dedicated final agent whose sole job is formatting the answer."
+        ]
+      }
+    ],
+    "explanation": "The headline failure is over-decomposition: serial fan-out with full-transcript context multiplies latency and tokens with no accuracy payoff. More agents, a bigger model, or a formatting agent all make it worse or miss the point. Recognizing needless complexity is the judgment signal."
+  },
+  "d1-003": {
+    "domain": "d1",
+    "topic": "Agentic loops",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "An agentic loop continues until the model declares the task complete. On ambiguous tasks it sometimes loops dozens of times, editing and re-editing the same files. What should be added?",
+      "A loop that runs until the model says \"done\" occasionally thrashes for dozens of iterations on unclear tasks. Which addition fixes this?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "A hard iteration ceiling plus explicit, checkable completion criteria the loop evaluates each pass.",
+          "A maximum-iteration cap and concrete done-conditions verified on every pass."
+        ],
+        "timed": [
+          "An upper bound on iterations together with objective completion checks each cycle."
+        ]
+      },
+      {
+        "practice": [
+          "A stronger prompt telling the model to be more confident about when it is finished."
+        ],
+        "timed": [
+          "Prompt the model more firmly to decide when it is done.",
+          "Strengthen the instruction so the model judges completion better."
+        ]
+      },
+      {
+        "practice": [
+          "A larger context window so the loop can keep more history before stopping."
+        ],
+        "timed": [
+          "More context capacity so the loop retains more state before terminating.",
+          "A bigger context window so more history is kept before the loop ends."
+        ]
+      },
+      {
+        "practice": [
+          "Streaming responses so the user can watch each iteration as it happens."
+        ],
+        "timed": [
+          "Enable token streaming so iterations are visible in real time.",
+          "Stream the output so each loop pass can be watched live."
+        ]
+      }
+    ],
+    "explanation": "Self-declared completion with no ceiling is the classic runaway-loop flaw; a bounded iteration count plus objective exit criteria fixes it. Prompting harder still trusts the same unreliable signal; more context or streaming changes nothing about termination."
+  },
+  "d1-004": {
+    "domain": "d1",
+    "topic": "Agentic loops",
+    "archetype": "best-practice",
+    "difficulty": "core",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "When designing a reliable agentic loop, which control structure is recommended?",
+      "What is the recommended shape for an agentic loop that needs to stay reliable?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Plan, act, observe, and check against the goal each iteration, with a bounded number of iterations.",
+          "A bounded plan-act-observe-verify cycle that re-checks the goal every pass."
+        ],
+        "timed": [
+          "Iterate through plan → act → observe → evaluate-goal, capped at a maximum number of cycles."
+        ]
+      },
+      {
+        "practice": [
+          "Generate the entire plan once up front and execute it without re-checking."
+        ],
+        "timed": [
+          "Produce one fixed plan and run it straight through with no re-evaluation.",
+          "Plan everything once and execute without checking progress."
+        ]
+      },
+      {
+        "practice": [
+          "Repeat the same action until the output stops changing between iterations."
+        ],
+        "timed": [
+          "Keep re-running the same step until its output is stable.",
+          "Repeat one action until consecutive outputs match."
+        ]
+      },
+      {
+        "practice": [
+          "Avoid loops entirely and force every task into a single one-shot response."
+        ],
+        "timed": [
+          "Never loop — always handle the task in one shot.",
+          "Forbid iteration and force a single-pass response every time."
+        ]
+      }
+    ],
+    "explanation": "A bounded observe-and-re-check cycle keeps the agent grounded against the goal and guarantees termination. A fixed up-front plan cannot adapt to observations; spinning until output stabilizes is not a goal check; banning loops abandons the agentic pattern where it is warranted."
+  },
+  "d1-005": {
+    "domain": "d1",
+    "topic": "Session management",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A multi-turn agent stores its entire growing message history and replays all of it on every turn. After ~30 turns it slows down, costs spike, and it starts losing the thread. What is the best fix?",
+      "An agent replays its full and ever-growing transcript each turn; by turn 30 it is slow, expensive, and increasingly incoherent. Which change helps most?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Summarize/compact older turns and keep a rolling working context, persisting key facts separately.",
+          "Compress earlier turns into a running summary and carry forward only the durable key state."
+        ],
+        "timed": [
+          "Roll up old turns into a compact summary and maintain a bounded working window plus persisted essentials."
+        ]
+      },
+      {
+        "practice": [
+          "Start a brand-new session on every turn so history never accumulates."
+        ],
+        "timed": [
+          "Reset to a fresh session each turn to prevent buildup.",
+          "Begin a new session every turn so nothing accumulates."
+        ]
+      },
+      {
+        "practice": [
+          "Move to the largest-context model and keep replaying the entire history."
+        ],
+        "timed": [
+          "Adopt the biggest context window and continue sending the full transcript.",
+          "Switch to a larger-context model while still replaying everything."
+        ]
+      },
+      {
+        "practice": [
+          "Lower the temperature so the model stays more focused as history grows."
+        ],
+        "timed": [
+          "Reduce sampling temperature to keep focus as the transcript expands.",
+          "Lower temperature so the model stays on track as history grows."
+        ]
+      }
+    ],
+    "explanation": "Unbounded replay degrades cost, latency, and focus; summarization plus durable key-state is the standard remedy. Resetting every turn destroys continuity; a bigger context only postpones the same failure; temperature has nothing to do with context bloat."
+  },
+  "d1-006": {
+    "domain": "d1",
+    "topic": "Tool orchestration",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "An agent calls tools in a fixed sequence. When tool 2 returns an error, the agent ignores it and feeds tool 2’s empty output into tool 3, producing garbage downstream. What should change?",
+      "In a fixed tool chain, a failure from the second tool is ignored and its empty result flows into the third tool, corrupting the rest. Which fix is correct?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Detect the tool error and return it to the model so it can retry, choose another tool, or abort — do not pass failed output forward.",
+          "Surface tool failures back to the model to decide the next step instead of forwarding empty results."
+        ],
+        "timed": [
+          "Catch the failed tool result, hand the error to the model, and let it retry/branch/stop rather than chaining bad output."
+        ]
+      },
+      {
+        "practice": [
+          "Retry tool 2 immediately and indefinitely until it eventually succeeds."
+        ],
+        "timed": [
+          "Keep re-invoking tool 2 with no limit until it returns success.",
+          "Retry tool 2 endlessly until it finally succeeds."
+        ]
+      },
+      {
+        "practice": [
+          "Remove tool 2 from the chain so the failure can never occur."
+        ],
+        "timed": [
+          "Drop tool 2 entirely to eliminate the error path.",
+          "Remove tool 2 from the sequence so it cannot fail."
+        ]
+      },
+      {
+        "practice": [
+          "Run all three tools in parallel so a failure in one does not block the others."
+        ],
+        "timed": [
+          "Execute the tools concurrently so one failure cannot stall the rest.",
+          "Run all tools in parallel to keep one failure from blocking the others."
+        ]
+      }
+    ],
+    "explanation": "The flaw is swallowing a tool error and propagating bad data; the fix is explicit error handling that informs the model. Unbounded retry can hang; deleting the tool removes needed capability; parallelizing does not address dependency on tool 2’s result and still forwards garbage."
+  },
+  "d1-007": {
+    "domain": "d1",
+    "topic": "Fallback loop design",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "An agent retries a failing tool call in a tight loop, re-issuing the identical call immediately until it succeeds. Under intermittent API failures, some sessions run away on cost and never terminate. What should the design add?",
+      "A team's agent handles a flaky API by immediately re-calling it on every failure with no other change. Some sessions hang and rack up cost. Which change best fixes this?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Add bounded retries with exponential backoff and an escape hatch that exits after N attempts.",
+          "Cap retries with backoff plus a fallback path once the attempt limit is hit."
+        ],
+        "timed": [
+          "Introduce a retry ceiling with exponential backoff and a defined exit/fallback when the ceiling is reached."
+        ]
+      },
+      {
+        "practice": [
+          "Switch every step to the highest-capability model so calls fail less often."
+        ],
+        "timed": [
+          "Route all steps to the top model tier to reduce failure frequency.",
+          "Send every step to the most capable model so failures drop."
+        ]
+      },
+      {
+        "practice": [
+          "Remove the loop and call the tool once, failing the whole task on any error."
+        ],
+        "timed": [
+          "Drop retries entirely and abort the task on the first failure.",
+          "Remove all retrying and fail the task on any single error."
+        ]
+      },
+      {
+        "practice": [
+          "Wrap the same immediate-retry loop in a parallel agent to amortize cost."
+        ],
+        "timed": [
+          "Parallelize the existing no-backoff loop across agents to spread the load.",
+          "Fan the same immediate-retry loop out across agents to share the cost."
+        ]
+      }
+    ],
+    "explanation": "Domain 1 fallback-loop design: bounded retries + backoff + an escape hatch. The distractors are anti-patterns an AI assistant tends to generate - top-tier-everywhere (cost, does not fix non-termination), brittle no-retry over-correction, and parallelizing a broken loop. Catching the missing escape hatch is the critical-evaluation signal."
+  },
+  "d1-008": {
+    "domain": "d1",
+    "topic": "Fallback loop design",
+    "archetype": "critique-output",
+    "difficulty": "hard",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "An AI assistant writes this fallback: on any error, fall back to a cheaper model, then to a still-cheaper one, with no attempt limit and no logging. Reviewing it, what is the biggest concern?",
+      "Code review: a fallback chain silently downgrades to progressively cheaper models on every error, unbounded and unlogged. What is the most important problem?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "It degrades quality silently with no limit or visibility — add a quality floor, log/surface each fallback, and a terminal give-up path.",
+          "Silent unbounded downgrade hides failures; it needs an observability signal, a minimum-acceptable tier, and a final failure state."
+        ],
+        "timed": [
+          "Unlogged, unlimited degradation can return poor answers with no signal — introduce logging, a tier floor, and a defined stop."
+        ]
+      },
+      {
+        "practice": [
+          "It should fall back to progressively more expensive models instead of cheaper ones."
+        ],
+        "timed": [
+          "The escalation direction is wrong — it should climb to costlier models on failure.",
+          "It ought to fall back upward to more expensive models, not cheaper ones."
+        ]
+      },
+      {
+        "practice": [
+          "Fallbacks are unnecessary; the call should simply fail on the first error."
+        ],
+        "timed": [
+          "There is no need for fallback at all — fail immediately on any error.",
+          "Skip fallback entirely and error out on the first failure."
+        ]
+      },
+      {
+        "practice": [
+          "The only issue is that it does not retry the same model once before falling back."
+        ],
+        "timed": [
+          "Its sole flaw is skipping a single same-model retry before degrading.",
+          "The only gap is one missing same-model retry prior to downgrading."
+        ]
+      }
+    ],
+    "explanation": "The dominant risk is silent, unbounded quality degradation with no observability or terminal state. Always escalating to costlier models is its own anti-pattern; removing fallback abandons resilience; a missing same-model retry is minor next to the lack of a floor and logging."
+  },
+  "d1-009": {
+    "domain": "d1",
+    "topic": "Parallelization workflows",
+    "archetype": "best-practice",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "You must summarize 200 independent documents with Claude as fast as possible. Which approach is recommended?",
+      "Two hundred unrelated documents each need a summary, and throughput matters. What is the recommended design?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Fan the work out into concurrent per-document calls, then aggregate the summaries.",
+          "Process the independent documents in parallel and combine the results."
+        ],
+        "timed": [
+          "Issue the document summaries concurrently and merge them afterward."
+        ]
+      },
+      {
+        "practice": [
+          "Concatenate all 200 documents into a single prompt and ask for every summary at once."
+        ],
+        "timed": [
+          "Put all 200 documents in one prompt and request all summaries together.",
+          "Concatenate every document into a single request for all summaries at once."
+        ]
+      },
+      {
+        "practice": [
+          "Summarize them one at a time within a single ongoing conversation."
+        ],
+        "timed": [
+          "Handle the documents sequentially inside one chat thread.",
+          "Summarize them one by one in a single conversation."
+        ]
+      },
+      {
+        "practice": [
+          "Have one agent loop over the documents, re-reading all prior ones each pass."
+        ],
+        "timed": [
+          "Use a single agent that re-ingests every earlier document on each iteration.",
+          "Loop one agent across the docs, re-reading all earlier ones each pass."
+        ]
+      }
+    ],
+    "explanation": "Independent work should be parallelized and aggregated — the textbook parallelization workflow. One mega-prompt blows the context window and mixes unrelated content; sequential processing and a re-reading loop are needlessly slow and accumulate irrelevant context."
+  },
+  "d1-010": {
+    "domain": "d1",
+    "topic": "Parallelization workflows",
+    "archetype": "tradeoff",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "Parallelizing 50 subagent calls would be fastest, but you are near your API rate limit and the calls hit a shared rate-limited downstream service. What is the best call?",
+      "Fifty independent calls could run at once, but rate limits (yours and a shared downstream) are a real constraint. Which approach balances speed and reliability?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Use bounded concurrency — a worker pool with a sensible cap — plus backoff on rate-limit responses.",
+          "Cap parallelism with a concurrency limit and back off when limits are hit."
+        ],
+        "timed": [
+          "Run a limited number in flight at once via a pool, with retry/backoff on throttling."
+        ]
+      },
+      {
+        "practice": [
+          "Fire all 50 at once to minimize wall-clock time and ignore the limits."
+        ],
+        "timed": [
+          "Launch every call simultaneously for maximum speed regardless of limits.",
+          "Fire all 50 at once and ignore the rate limits."
+        ]
+      },
+      {
+        "practice": [
+          "Run all 50 strictly sequentially to be completely safe."
+        ],
+        "timed": [
+          "Process the calls one by one to fully avoid throttling.",
+          "Execute all 50 strictly in sequence to stay safe."
+        ]
+      },
+      {
+        "practice": [
+          "Remove the dependency by never caching any downstream results."
+        ],
+        "timed": [
+          "Stop caching downstream results to sidestep the dependency.",
+          "Remove all downstream caching to break the dependency."
+        ]
+      }
+    ],
+    "explanation": "Bounded concurrency with backoff captures most of the parallel speedup while respecting rate limits — the right judgment under constraints. Unbounded fan-out trips the limits and triggers 429s; full serialization is needlessly slow; dropping caching makes downstream pressure worse, not better."
+  },
+  "d1-011": {
+    "domain": "d1",
+    "topic": "Chaining workflows",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A chain passes each step’s raw, verbose output as the next step’s input. By step 5 the prompt is enormous and the model fixates on irrelevant earlier detail. What is the fix?",
+      "In a multi-step chain, every step forwards its full raw output; later steps drown in earlier noise. Which change addresses the root cause?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Transform each step’s output into the distilled, structured result the next step actually needs before passing it on.",
+          "Extract a compact, structured hand-off between steps instead of forwarding raw output."
+        ],
+        "timed": [
+          "Reduce each step to the specific structured fields the following step requires."
+        ]
+      },
+      {
+        "practice": [
+          "Skip some middle steps to keep the final prompt shorter."
+        ],
+        "timed": [
+          "Drop intermediate steps so the last prompt stays small.",
+          "Skip some middle steps to shorten the final prompt."
+        ]
+      },
+      {
+        "practice": [
+          "Move to a larger-context model so the growing prompt still fits."
+        ],
+        "timed": [
+          "Adopt a bigger context window to accommodate the expanding prompt.",
+          "Upgrade to a model with more context so the longer prompt fits."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature so the model is less rigid about earlier detail."
+        ],
+        "timed": [
+          "Increase temperature to loosen the model’s focus on prior content.",
+          "Raise temperature so the model fixates less on earlier detail."
+        ]
+      }
+    ],
+    "explanation": "The flaw is forwarding raw verbose output; the fix is a clean, distilled hand-off between chain steps. Skipping steps changes behavior and loses work; a bigger context only delays the noise problem; temperature does not address irrelevant accumulated detail."
+  },
+  "d1-012": {
+    "domain": "d1",
+    "topic": "Routing workflows",
+    "archetype": "best-practice",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "Incoming requests range from trivial FAQ lookups to complex multi-step analysis. Which design handles this mix well?",
+      "A service receives both one-line FAQ questions and heavy analytical tasks. What is the recommended way to handle the range?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "A lightweight router classifies each request and directs it to the appropriate handler and model tier.",
+          "Use a cheap classifier to route requests to the right-sized handler/model."
+        ],
+        "timed": [
+          "Add a fast routing step that sends each request to a matching handler and model capability."
+        ]
+      },
+      {
+        "practice": [
+          "Send every request to the most capable model to be safe."
+        ],
+        "timed": [
+          "Route all requests to the top model regardless of difficulty.",
+          "Default every request to the strongest model just to be safe."
+        ]
+      },
+      {
+        "practice": [
+          "Send every request to the cheapest model to minimize cost."
+        ],
+        "timed": [
+          "Handle everything with the smallest model to keep cost lowest.",
+          "Direct all requests to the cheapest model for minimum cost."
+        ]
+      },
+      {
+        "practice": [
+          "Handle all request types in one large prompt that tries to cover every case."
+        ],
+        "timed": [
+          "Use a single catch-all prompt that addresses every possible request type.",
+          "Cover all request types in one large general-purpose prompt."
+        ]
+      }
+    ],
+    "explanation": "Routing by classified complexity to the right tier optimizes both cost and quality — the standard routing workflow. Top-model-everywhere wastes money on trivial calls; cheapest-everywhere fails the hard ones; one mega-prompt is unfocused and brittle."
+  },
+  "d1-013": {
+    "domain": "d1",
+    "topic": "Routing workflows",
+    "archetype": "tradeoff",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "Your router (a cheap classifier call) adds latency and occasionally misroutes hard questions to the cheap handler. Stakeholders want low cost and high accuracy on hard cases. Best adjustment?",
+      "A cheap routing model sometimes sends difficult questions to the low-tier handler. You need cost control without sacrificing accuracy on the hard ones. What is the best change?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Escalate to the stronger handler whenever the classifier is low-confidence, accepting slightly higher cost on ambiguous cases.",
+          "Route by confidence: when the router is unsure, send the request to the higher tier."
+        ],
+        "timed": [
+          "Gate on classifier confidence — uncertain requests go to the more capable handler."
+        ]
+      },
+      {
+        "practice": [
+          "Remove the router and send everything to the cheap handler to cut cost."
+        ],
+        "timed": [
+          "Drop routing and handle all requests with the low tier for savings.",
+          "Remove the router and send everything to the cheap handler."
+        ]
+      },
+      {
+        "practice": [
+          "Remove the router and send everything to the expensive handler to be safe."
+        ],
+        "timed": [
+          "Eliminate routing and send all requests to the top tier.",
+          "Drop the router and route everything to the expensive handler."
+        ]
+      },
+      {
+        "practice": [
+          "Accept the misroutes since the router is cheaper than fixing them."
+        ],
+        "timed": [
+          "Tolerate the wrong routes because the classifier is inexpensive.",
+          "Accept the misroutes since the cheap router saves money."
+        ]
+      }
+    ],
+    "explanation": "Confidence-gated escalation keeps most traffic cheap while protecting accuracy on the cases that matter — the right tradeoff. Cheap-for-all sacrifices the hard cases; expensive-for-all defeats the routing’s purpose; accepting misroutes ignores the stated accuracy requirement."
+  },
+  "d1-014": {
+    "domain": "d1",
+    "topic": "Cost optimization",
+    "archetype": "tradeoff",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A pipeline runs every step on the top-tier model for quality. Cost is unsustainable. Most steps are simple extraction; one step is genuinely hard reasoning. Best optimization?",
+      "An all-Opus pipeline is too expensive. Nearly all steps are easy extraction, with a single hard reasoning step. How should you cut cost?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Right-size per step: a smaller/faster model for the simple extraction steps, reserving the top tier for the hard reasoning step.",
+          "Tier the models by step difficulty — cheap models for extraction, top tier only where reasoning is hard."
+        ],
+        "timed": [
+          "Match each step to the cheapest model that handles it, keeping the strongest model for the one demanding step."
+        ]
+      },
+      {
+        "practice": [
+          "Move every step to the cheapest model to maximize savings."
+        ],
+        "timed": [
+          "Downgrade all steps to the smallest model for the biggest cut.",
+          "Shift every step to the smallest model for maximum savings."
+        ]
+      },
+      {
+        "practice": [
+          "Keep the top model everywhere but arbitrarily delete some steps to save calls."
+        ],
+        "timed": [
+          "Leave all steps on the top tier and just remove some steps to reduce volume.",
+          "Keep top-tier everywhere but delete some steps to cut calls."
+        ]
+      },
+      {
+        "practice": [
+          "Request a rate-limit increase so the expensive calls run faster."
+        ],
+        "timed": [
+          "Ask for higher rate limits to speed up the costly calls.",
+          "Request a rate-limit increase so the expensive calls go faster."
+        ]
+      }
+    ],
+    "explanation": "Per-step model tiering captures large savings while protecting the one step that needs reasoning power — the core cost-optimization judgment. Cheapest-everywhere fails the hard step; deleting steps changes behavior; a rate-limit bump affects throughput, not cost per call."
+  },
+  "d1-015": {
+    "domain": "d1",
+    "topic": "Cost optimization",
+    "archetype": "critique-output",
+    "difficulty": "hard",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "To cut cost, an AI assistant suggests: route all requests through the cheapest model, disable retries, and remove output validation. What is the right critique?",
+      "An AI proposes saving money by using only the cheapest model, turning off retries, and dropping validation. How should you respond in review?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "It trades away reliability and quality for cost; cut spend instead via prompt caching, genuine batching, and per-step model tiering while keeping retries and validation.",
+          "Reject it: reduce cost through caching, batching, and right-sizing — not by removing the safeguards that keep output trustworthy."
+        ],
+        "timed": [
+          "The proposal sacrifices correctness for savings; achieve cost cuts with caching, batchable work, and tiered models while retaining retries and checks."
+        ]
+      },
+      {
+        "practice": [
+          "Agree fully — minimizing cost outweighs reliability concerns here."
+        ],
+        "timed": [
+          "Accept it as-is since cost reduction is the priority.",
+          "Approve the plan because lowering cost matters most."
+        ]
+      },
+      {
+        "practice": [
+          "It does not go far enough — also remove logging and monitoring to save more."
+        ],
+        "timed": [
+          "Extend it by cutting logging and monitoring for additional savings.",
+          "Go further and remove monitoring and logging to save more."
+        ]
+      },
+      {
+        "practice": [
+          "The only real issue is the model choice; disabling retries and validation is fine."
+        ],
+        "timed": [
+          "Just revisit the model tier; dropping retries and validation is acceptable.",
+          "Only the model choice needs review; removing retries and validation is fine."
+        ]
+      }
+    ],
+    "explanation": "The proposal removes the safeguards (retries, validation) that protect correctness and downgrades quality blindly. Sound cost control comes from caching, real batching, and tiering. Agreeing, cutting monitoring too, or excusing the removed safeguards all accept unacceptable reliability loss."
+  },
+  "d1-016": {
+    "domain": "d1",
+    "topic": "Tool orchestration",
+    "archetype": "foundational",
+    "difficulty": "core",
+    "dimensions": [],
+    "claudeSpecific": false,
+    "stem": [
+      "In a tool-using agent, what is the correct control flow for a single tool call?",
+      "Which sequence correctly describes one tool-use round in an agent?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "The model requests a tool with input, the application executes the tool and returns the result to the model, and the model continues.",
+          "Model emits a tool call → app runs the tool → app feeds the result back → model proceeds."
+        ],
+        "timed": [
+          "The model asks to call a tool, the host runs it and hands back the output, then the model resumes generation."
+        ]
+      },
+      {
+        "practice": [
+          "The model executes the tool itself and returns the final answer directly."
+        ],
+        "timed": [
+          "The model runs the tool internally and produces the result on its own.",
+          "The model executes the tool itself and returns the final answer."
+        ]
+      },
+      {
+        "practice": [
+          "The application guesses the answer without ever invoking the requested tool."
+        ],
+        "timed": [
+          "The host fabricates the result rather than calling the tool.",
+          "The application guesses the answer without invoking the tool."
+        ]
+      },
+      {
+        "practice": [
+          "The tool invokes the model, which then decides whether to run."
+        ],
+        "timed": [
+          "The tool calls the model first, which then chooses to execute.",
+          "The tool triggers the model, which then decides whether to run."
+        ]
+      }
+    ],
+    "explanation": "Tool use is a round trip: the model requests, the application executes and returns the tool result, and the model continues. The model never executes tools itself, the app must not fabricate results, and the direction is model → app → model, not the reverse."
+  },
+  "d2-001": {
+    "domain": "d2",
+    "topic": "CLAUDE.md hierarchies",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "A team pastes its entire API reference, style guide, and project history into one 5,000-line project CLAUDE.md. Claude now ignores instructions and the context window fills fast. What is the fix?",
+      "A project’s CLAUDE.md has grown to thousands of lines of reference material, and the model increasingly misses its instructions. Which change addresses the root cause?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Keep CLAUDE.md concise and high-signal; move reference material into docs Claude reads on demand, and use the global/project/local layers for what belongs at each.",
+          "Trim it to durable, high-value guidance and link out to detailed docs rather than inlining everything."
+        ],
+        "timed": [
+          "Pare CLAUDE.md down to essential, lasting instructions; let Claude pull detailed references on demand and place each rule at the right global/project/local layer."
+        ]
+      },
+      {
+        "practice": [
+          "Move the same thousands of lines into the global ~/.claude CLAUDE.md so every project inherits them."
+        ],
+        "timed": [
+          "Relocate the entire file to the global CLAUDE.md so all projects load it.",
+          "Push the whole thing into the user-level CLAUDE.md for every repo to inherit."
+        ]
+      },
+      {
+        "practice": [
+          "Keep the giant file but add a line telling Claude to read it carefully."
+        ],
+        "timed": [
+          "Leave it huge and instruct Claude to read all of it attentively.",
+          "Retain the full file and just ask the model to pay closer attention."
+        ]
+      },
+      {
+        "practice": [
+          "Paste the full reference into every prompt instead of the file."
+        ],
+        "timed": [
+          "Inline the entire reference into each prompt rather than the file.",
+          "Attach the whole reference text to every message you send."
+        ]
+      }
+    ],
+    "explanation": "CLAUDE.md is always-on context; bloating it crowds the window and dilutes instructions. Keep it lean and layered, linking to docs read on demand. Moving the bloat to the global file makes every project pay the cost; telling Claude to \"read carefully\" or pasting it into prompts is the same bloat relocated."
+  },
+  "d2-002": {
+    "domain": "d2",
+    "topic": "Custom slash commands",
+    "archetype": "best-practice",
+    "difficulty": "core",
+    "dimensions": [],
+    "claudeSpecific": true,
+    "stem": [
+      "What is the correct way to create a reusable custom slash command in Claude Code?",
+      "How do you define a shareable custom slash command in Claude Code?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Add a Markdown file under .claude/commands/ (project) or ~/.claude/commands/ (personal); its body is the prompt, with $ARGUMENTS for inputs.",
+          "Create a command file in .claude/commands/<name>.md whose contents are the prompt template."
+        ],
+        "timed": [
+          "Place a Markdown file in .claude/commands/ whose body becomes the command prompt, using $ARGUMENTS for parameters."
+        ]
+      },
+      {
+        "practice": [
+          "Add a shell-script entry to settings.json and call it as a command."
+        ],
+        "timed": [
+          "Register a shell script in settings.json to act as the command.",
+          "Wire the command up as a script reference inside settings.json."
+        ]
+      },
+      {
+        "practice": [
+          "Write the instructions as a section in CLAUDE.md and trigger them by name."
+        ],
+        "timed": [
+          "Define it as a labeled block in CLAUDE.md and invoke by that label.",
+          "Put the command text in CLAUDE.md and call it by heading."
+        ]
+      },
+      {
+        "practice": [
+          "Install an MCP server that exposes the command as a tool."
+        ],
+        "timed": [
+          "Stand up an MCP server so the command appears as a tool.",
+          "Expose the command through a custom MCP server tool."
+        ]
+      }
+    ],
+    "explanation": "Custom slash commands are Markdown files in .claude/commands/ (project) or ~/.claude/commands/ (personal); the file body is the prompt and $ARGUMENTS injects inputs. settings.json is for permissions/hooks, CLAUDE.md is always-on guidance rather than an invokable command, and MCP servers expose tools, not slash commands."
+  },
+  "d2-003": {
+    "domain": "d2",
+    "topic": "Agent Skills",
+    "archetype": "best-practice",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "You want a reusable workflow that Claude automatically invokes when it is relevant, and that the whole team shares. How should you build it?",
+      "A recurring workflow should trigger on its own when applicable and be shared across the team. What is the recommended mechanism?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Build an Agent Skill: a SKILL.md with name/description frontmatter (the description drives automatic invocation), committed to the repo so the team shares it.",
+          "Author a skill file whose description tells Claude when to use it, and commit it for the team."
+        ],
+        "timed": [
+          "Create an Agent Skill — a SKILL.md whose frontmatter description triggers auto-invocation — and commit it to the repo for sharing."
+        ]
+      },
+      {
+        "practice": [
+          "Make a custom slash command, since it does the same thing automatically."
+        ],
+        "timed": [
+          "Use a slash command, which Claude will run on its own when relevant.",
+          "A custom slash command will auto-trigger the workflow when needed."
+        ]
+      },
+      {
+        "practice": [
+          "Add a long section to CLAUDE.md describing the workflow steps."
+        ],
+        "timed": [
+          "Document the workflow as a big CLAUDE.md section.",
+          "Write the steps into CLAUDE.md so they are always loaded."
+        ]
+      },
+      {
+        "practice": [
+          "Configure a PostToolUse hook to run the workflow."
+        ],
+        "timed": [
+          "Set up a hook to execute the workflow after tool calls.",
+          "Trigger the workflow from a PostToolUse hook."
+        ]
+      }
+    ],
+    "explanation": "Agent Skills are reusable, description-triggered units (SKILL.md) that Claude auto-invokes when the description matches, and you commit them to share. Slash commands must be invoked manually; a CLAUDE.md section is always-on prose, not a packaged skill; hooks fire on tool events, not on task relevance."
+  },
+  "d2-004": {
+    "domain": "d2",
+    "topic": "Hooks",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "To 'catch regressions early,' an engineer adds a PreToolUse hook that runs the full test suite before every file edit. Sessions become unusably slow. What is the better design?",
+      "A team's PreToolUse hook executes the entire test suite ahead of each edit, grinding sessions to a halt. How should this be restructured?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Move full-suite testing to a PostToolUse or Stop hook (or CI), and keep PreToolUse checks fast and targeted.",
+          "Run the suite after edits / at session stop or in CI; reserve PreToolUse for cheap, scoped validation."
+        ],
+        "timed": [
+          "Relocate the heavy test run to a post-edit or stop-time hook (or the CI pipeline) and limit pre-edit hooks to quick, narrow checks."
+        ]
+      },
+      {
+        "practice": [
+          "Keep the hook but disable tests that are slow."
+        ],
+        "timed": [
+          "Leave the PreToolUse hook and just turn off the slower tests.",
+          "Keep the pre-edit hook but switch off the slow tests."
+        ]
+      },
+      {
+        "practice": [
+          "Replace the hook with a CLAUDE.md instruction telling the model to run tests."
+        ],
+        "timed": [
+          "Drop the hook and add a CLAUDE.md note asking the model to test before editing.",
+          "Swap the hook for a CLAUDE.md instruction to run tests first."
+        ]
+      },
+      {
+        "practice": [
+          "Increase the hook timeout so the suite has time to finish."
+        ],
+        "timed": [
+          "Raise the hook timeout so the full suite can complete each time.",
+          "Extend the hook timeout to let the whole suite finish every edit."
+        ]
+      }
+    ],
+    "explanation": "Hooks that block every tool call must be fast and targeted; full suites belong in PostToolUse/Stop hooks or CI. Disabling tests trades safety for speed; a CLAUDE.md instruction is advisory not enforced; a longer timeout keeps the latency. Recognizing that the hook trigger point is the flaw is the judgment signal."
+  },
+  "d2-005": {
+    "domain": "d2",
+    "topic": "MCP server integration",
+    "archetype": "critique-output",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "An engineer wires up an MCP server by hardcoding its API token directly in the committed .mcp.json and grants the server access to every tool. What is the right critique?",
+      "A committed .mcp.json contains a plaintext API token and gives the MCP server full tool access. How should you respond in review?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Reject it: the API token must not be committed — reference it from an environment variable — and the server should be granted only the tools it needs (least privilege).",
+          "Do not commit the secret; use env-var interpolation in .mcp.json and scope the server to least-privilege tool access."
+        ],
+        "timed": [
+          "Push back — keep the token out of version control via an env-var reference and limit the server to only the tools it requires."
+        ]
+      },
+      {
+        "practice": [
+          "It is fine because .mcp.json stays on the developer machine and is never shared."
+        ],
+        "timed": [
+          "No issue — .mcp.json is local and never leaves the machine.",
+          "Acceptable, since the config file is private to the developer."
+        ]
+      },
+      {
+        "practice": [
+          "The only problem is that the server should expose more tools to be useful."
+        ],
+        "timed": [
+          "The sole concern is that it needs additional tools.",
+          "It just needs broader tool access to be worthwhile."
+        ]
+      },
+      {
+        "practice": [
+          "Move the hardcoded token into CLAUDE.md so it is at least documented."
+        ],
+        "timed": [
+          "Relocate the token into CLAUDE.md for documentation.",
+          "Record the token in CLAUDE.md instead."
+        ]
+      }
+    ],
+    "explanation": "Two real problems: a committed secret (project .mcp.json is shared and version-controlled, so use env-var references) and over-broad tool grants (apply least privilege). Calling it local is wrong, \"needs more tools\" inverts the issue, and moving the token to CLAUDE.md still commits the secret."
+  },
+  "d2-006": {
+    "domain": "d2",
+    "topic": "GitHub integration",
+    "archetype": "best-practice",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "You want Claude to automatically review pull requests and flag regressions before merge. What is the recommended setup?",
+      "A team wants automated Claude PR reviews that comment on problems prior to merge. Which approach is recommended?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Use the Claude Code GitHub app/Action triggered on pull_request, with scoped repository permissions.",
+          "Wire up the GitHub Action to run on PRs and post review comments, using least-privilege tokens."
+        ],
+        "timed": [
+          "Configure the Claude Code GitHub Action to run on pull_request events and comment, with narrowly scoped permissions."
+        ]
+      },
+      {
+        "practice": [
+          "Paste each PR diff into an interactive chat by hand for review."
+        ],
+        "timed": [
+          "Manually copy every diff into a chat session to review.",
+          "Hand-paste each pull request diff into the chat each time."
+        ]
+      },
+      {
+        "practice": [
+          "Give the automation your personal GitHub account password."
+        ],
+        "timed": [
+          "Hand it your personal GitHub password for access.",
+          "Authenticate it with your own account password."
+        ]
+      },
+      {
+        "practice": [
+          "Run reviews only on direct pushes to main, after the merge has landed."
+        ],
+        "timed": [
+          "Trigger reviews solely on post-merge pushes to main.",
+          "Only review on pushes to main once changes are merged."
+        ]
+      }
+    ],
+    "explanation": "The GitHub Action on pull_request with scoped permissions is the supported, automated path and catches issues before merge. Manual diff-pasting does not scale; sharing a personal password is a security anti-pattern (use scoped tokens/the app); reviewing only post-merge on main defeats the purpose of PR review."
+  },
+  "d2-007": {
+    "domain": "d2",
+    "topic": "Context management",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "A long Claude Code session has drifted — earlier, unrelated tasks keep confusing the model on the current one. What is the right action?",
+      "Mid-session, residue from earlier unrelated tasks is biasing Claude on a new task. What should you do?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Run /clear to reset context before the new task (or /compact to summarize) so prior unrelated work stops interfering.",
+          "Clear or compact the context so the stale earlier tasks no longer bias the current one."
+        ],
+        "timed": [
+          "Reset the context with /clear (or summarize with /compact) before starting the new task so old work stops interfering."
+        ]
+      },
+      {
+        "practice": [
+          "Keep the session going and prompt more forcefully about the current task."
+        ],
+        "timed": [
+          "Stay in the session and just insist harder on the current task.",
+          "Continue and re-emphasize the current task more strongly."
+        ]
+      },
+      {
+        "practice": [
+          "Open many more files so the model has additional context to sort it out."
+        ],
+        "timed": [
+          "Load more files to give the model extra context.",
+          "Add more open files so it can figure things out."
+        ]
+      },
+      {
+        "practice": [
+          "Switch to a larger-context model and keep all the accumulated history."
+        ],
+        "timed": [
+          "Move to a bigger context window and retain everything.",
+          "Adopt a larger-context model and keep the full history."
+        ]
+      }
+    ],
+    "explanation": "Context discipline: /clear (or /compact) removes stale, unrelated context that is biasing the current task. Prompting harder fights the noise instead of removing it; adding files or a bigger context window increases the clutter rather than clearing it."
+  },
+  "d2-008": {
+    "domain": "d2",
+    "topic": "Claude Code SDK",
+    "archetype": "foundational",
+    "difficulty": "core",
+    "dimensions": [],
+    "claudeSpecific": true,
+    "stem": [
+      "What does the Claude Code SDK enable?",
+      "What is the Claude Code SDK for?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "It lets you run Claude Code programmatically / headless — e.g. invoked from scripts or CI — outside the interactive terminal.",
+          "It exposes Claude Code for non-interactive, scripted use such as automation pipelines."
+        ],
+        "timed": [
+          "It enables programmatic, headless use of Claude Code from scripts or CI rather than the interactive CLI."
+        ]
+      },
+      {
+        "practice": [
+          "It is a visual theme/skin for the Claude Code terminal UI."
+        ],
+        "timed": [
+          "It is just a UI theme for the CLI.",
+          "It changes the terminal appearance of Claude Code."
+        ]
+      },
+      {
+        "practice": [
+          "It replaces the Anthropic API for building general chat applications."
+        ],
+        "timed": [
+          "It is a drop-in replacement for the Anthropic chat API.",
+          "It supersedes the API for building chat apps."
+        ]
+      },
+      {
+        "practice": [
+          "It is required before you can use any slash commands."
+        ],
+        "timed": [
+          "Slash commands only work once the SDK is installed.",
+          "You must install the SDK to run slash commands."
+        ]
+      }
+    ],
+    "explanation": "The Claude Code SDK is for programmatic/headless invocation (scripts, CI), not a theme, not an API replacement for chat apps, and not a prerequisite for slash commands (which work in the normal CLI)."
+  },
+  "d2-009": {
+    "domain": "d2",
+    "topic": "Subagents",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "A single Claude session runs a huge multi-part research task; its context fills with file dumps and search output, degrading reasoning on the later parts. What is the better approach?",
+      "One session is doing a large multi-step investigation and its context is saturated with raw output, hurting later steps. Which design helps most?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Delegate independent sub-tasks to subagents that return only their conclusions, keeping the main session’s context lean.",
+          "Use subagents for the heavy sub-tasks so the main context receives summaries, not raw dumps."
+        ],
+        "timed": [
+          "Hand the bulky sub-tasks to subagents that report back only conclusions, so the main context stays focused."
+        ]
+      },
+      {
+        "practice": [
+          "Switch to the largest-context model and keep everything in the one session."
+        ],
+        "timed": [
+          "Move to a bigger context window and do it all in one session.",
+          "Adopt the largest-context model and keep a single session."
+        ]
+      },
+      {
+        "practice": [
+          "Turn off extended thinking to leave more room for file contents."
+        ],
+        "timed": [
+          "Disable thinking so more files fit in context.",
+          "Stop using extended thinking to free up context for files."
+        ]
+      },
+      {
+        "practice": [
+          "Put the entire task and all files into one giant prompt up front."
+        ],
+        "timed": [
+          "Load the whole task and every file in a single prompt.",
+          "Cram the full task and all files into one prompt."
+        ]
+      }
+    ],
+    "explanation": "Subagents isolate heavy sub-tasks and return distilled conclusions, protecting the main context — the standard context-management pattern. A bigger context only delays saturation; disabling thinking trades reasoning for room; one giant prompt is the very bloat that caused the degradation."
+  },
+  "d2-010": {
+    "domain": "d2",
+    "topic": "Tool access restrictions",
+    "archetype": "critique-output",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "A skill that only needs to read files is configured with full tool access, including Bash and Write. What is the right critique?",
+      "Reviewing a read-only skill that has nonetheless been granted Bash and Write — what is the main problem?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "It violates least privilege — restrict the skill’s allowed tools to what it needs (read-only here) to limit blast radius.",
+          "Scope the skill to only the tools required; a read-only skill should not have Bash or Write."
+        ],
+        "timed": [
+          "Apply least privilege: limit the skill’s tool access to read-only, removing the Bash and Write it does not need."
+        ]
+      },
+      {
+        "practice": [
+          "It is fine — more available tools simply make the skill more capable."
+        ],
+        "timed": [
+          "No problem — extra tools just add capability.",
+          "Acceptable, since broader access is more powerful."
+        ]
+      },
+      {
+        "practice": [
+          "The real gap is that it also needs network access to be complete."
+        ],
+        "timed": [
+          "It actually needs network access added too.",
+          "The missing piece is network access."
+        ]
+      },
+      {
+        "practice": [
+          "Tool restrictions do not apply to skills, so it does not matter."
+        ],
+        "timed": [
+          "Skills ignore tool restrictions anyway.",
+          "Tool scoping has no effect on skills."
+        ]
+      }
+    ],
+    "explanation": "A read-only skill granted Bash and Write violates least privilege and widens blast radius; scope its allowed tools to what it needs. More tools is not \"more capable\" when unneeded, adding network access expands the problem, and tool restrictions absolutely do apply to skills."
+  },
+  "d2-011": {
+    "domain": "d2",
+    "topic": "Configuration files",
+    "archetype": "best-practice",
+    "difficulty": "core",
+    "dimensions": [],
+    "claudeSpecific": true,
+    "stem": [
+      "Where do project-shared permissions and hooks belong versus personal, machine-specific overrides?",
+      "How should team-wide Claude Code config be separated from an individual’s local overrides?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Shared, committed settings go in .claude/settings.json; personal machine-specific overrides go in settings.local.json (gitignored).",
+          "Team-wide permissions/hooks belong in settings.json; individual overrides in settings.local.json."
+        ],
+        "timed": [
+          "Put team-shared config in .claude/settings.json and personal overrides in the gitignored settings.local.json."
+        ]
+      },
+      {
+        "practice": [
+          "Put all configuration, shared and personal, into CLAUDE.md."
+        ],
+        "timed": [
+          "Keep every setting in CLAUDE.md.",
+          "Store all config, shared or not, in CLAUDE.md."
+        ]
+      },
+      {
+        "practice": [
+          "Keep everything in settings.local.json and commit it for the team."
+        ],
+        "timed": [
+          "Put all settings in settings.local.json and check it in.",
+          "Commit settings.local.json so the team shares it."
+        ]
+      },
+      {
+        "practice": [
+          "Hardcode the permissions into each slash-command file."
+        ],
+        "timed": [
+          "Embed permissions in every command file.",
+          "Repeat the permission config inside each command."
+        ]
+      }
+    ],
+    "explanation": "settings.json is the committed, shared project config; settings.local.json holds personal, gitignored overrides. CLAUDE.md is guidance not config; committing settings.local.json defeats its purpose; duplicating permissions into each command is unmaintainable."
+  },
+  "d2-012": {
+    "domain": "d2",
+    "topic": "Context management",
+    "archetype": "critique-output",
+    "difficulty": "hard",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "To 'never lose context,' an engineer disables /compact and auto-compaction and keeps a single session open for days across many unrelated tasks. What is the right critique?",
+      "Someone argues that disabling compaction and keeping one perpetual session maximizes context retention. How should you respond?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Long undifferentiated context degrades focus and inflates cost; use /clear between unrelated tasks and let compaction summarize — disciplined context beats hoarding it.",
+          "Keeping one ballooning session hurts quality and cost; clear between tasks and allow /compact rather than disabling it."
+        ],
+        "timed": [
+          "Hoarding context erodes focus and raises cost; re-enable compaction and /clear between unrelated tasks instead of running one endless session."
+        ]
+      },
+      {
+        "practice": [
+          "It is the right approach — more retained context is always better."
+        ],
+        "timed": [
+          "Correct call, since more context is strictly better.",
+          "Sound approach — retaining everything always helps."
+        ]
+      },
+      {
+        "practice": [
+          "The only fix needed is to switch to a larger model."
+        ],
+        "timed": [
+          "Just move to a bigger model and it is fine.",
+          "A larger model is the sole change required."
+        ]
+      },
+      {
+        "practice": [
+          "They should instead restart the session after every single message."
+        ],
+        "timed": [
+          "Better to start a fresh session on each message.",
+          "Reset the session for every individual message."
+        ]
+      }
+    ],
+    "explanation": "Disabling compaction and never clearing produces a bloated context that degrades focus and cost; the discipline is /clear between unrelated tasks plus compaction summaries. More context is not always better, a bigger model does not fix clutter, and resetting every message destroys useful continuity."
+  },
+  "d3-001": {
+    "domain": "d3",
+    "topic": "System prompts",
+    "archetype": "critique-output",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "An AI-written system prompt for a support bot jams the role, 40 edge-case rules, several examples, and the live user question together with no structure. Behavior is inconsistent. What is the right critique?",
+      "A support-bot system prompt mixes role, dozens of rules, examples, and the incoming question into one unstructured blob, and responses vary wildly. How should it be fixed?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Give it a clear instruction hierarchy and structure — scoped role, organized instructions, examples kept separate from the live input — and resolve conflicting rules.",
+          "Impose structure: a focused role, grouped instructions, delimited examples distinct from the user input, and de-conflicted rules."
+        ],
+        "timed": [
+          "Restructure it: a scoped role, organized non-conflicting instructions, and examples clearly separated from the live question."
+        ]
+      },
+      {
+        "practice": [
+          "It simply needs even more edge-case rules to cover every situation."
+        ],
+        "timed": [
+          "Add more edge-case rules until every case is covered.",
+          "The fix is a longer list of rules for every scenario."
+        ]
+      },
+      {
+        "practice": [
+          "Switch to a more capable model and leave the prompt as is."
+        ],
+        "timed": [
+          "Upgrade the model and keep the unstructured prompt.",
+          "Use a stronger model rather than restructuring the prompt."
+        ]
+      },
+      {
+        "practice": [
+          "Restate the role several times for emphasis so the model remembers it."
+        ],
+        "timed": [
+          "Repeat the role multiple times to reinforce it.",
+          "Emphasize the role by stating it over and over."
+        ]
+      }
+    ],
+    "explanation": "The inconsistency comes from an unstructured prompt with no instruction hierarchy and examples bleeding into the live input. The fix is structure and de-confliction. More rules add more conflict; a bigger model cannot rescue a jumbled prompt; repeating the role wastes tokens without adding structure."
+  },
+  "d3-002": {
+    "domain": "d3",
+    "topic": "XML tags",
+    "archetype": "best-practice",
+    "difficulty": "core",
+    "dimensions": [],
+    "claudeSpecific": true,
+    "stem": [
+      "When building a complex Claude prompt with instructions, examples, and reference context, what does Anthropic recommend to keep the parts clearly delimited?",
+      "How does Anthropic suggest you separate instructions, examples, and context within a single complex Claude prompt?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Wrap each part in XML tags such as <instructions>, <examples>, and <context>.",
+          "Delimit the sections with XML tags like <instructions> and <context>."
+        ],
+        "timed": [
+          "Use XML tags (e.g. <instructions>, <examples>, <context>) to mark off each section."
+        ]
+      },
+      {
+        "practice": [
+          "Separate the parts with blank lines only and trust the model to infer structure."
+        ],
+        "timed": [
+          "Just use blank lines between sections.",
+          "Rely on whitespace alone to delimit the parts."
+        ]
+      },
+      {
+        "practice": [
+          "Combine everything into one continuous paragraph."
+        ],
+        "timed": [
+          "Write it all as a single paragraph.",
+          "Merge the sections into one block of prose."
+        ]
+      },
+      {
+        "practice": [
+          "Encode the entire prompt as one large JSON object."
+        ],
+        "timed": [
+          "Express the whole prompt as a JSON document.",
+          "Wrap the full prompt in a single JSON structure."
+        ]
+      }
+    ],
+    "explanation": "Anthropic recommends XML tags to delimit instructions, examples, and context so Claude can reliably distinguish the parts. Blank lines are ambiguous, one paragraph removes structure entirely, and JSON-wrapping the whole prompt is neither required nor helpful for delimiting prose sections."
+  },
+  "d3-003": {
+    "domain": "d3",
+    "topic": "Few-shot examples",
+    "archetype": "best-practice",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A classification prompt is accurate on typical inputs but inconsistent on edge cases. Which change most improves reliability?",
+      "A categorization prompt handles common cases well but wobbles on tricky ones. What is the most effective improvement?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Add a few well-chosen, representative examples (few-shot) that cover the edge cases, formatted consistently.",
+          "Provide consistent few-shot examples that demonstrate the hard edge cases."
+        ],
+        "timed": [
+          "Include a handful of representative edge-case examples in a consistent format."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature so the model is more flexible on edge cases."
+        ],
+        "timed": [
+          "Increase temperature to handle edge cases more loosely.",
+          "Turn up sampling temperature for the tricky inputs."
+        ]
+      },
+      {
+        "practice": [
+          "Replace examples with a longer, more abstract description of the rules."
+        ],
+        "timed": [
+          "Swap examples for a lengthier abstract rule description.",
+          "Drop examples in favor of more verbose rule prose."
+        ]
+      },
+      {
+        "practice": [
+          "Remove all examples so the model is not biased by them."
+        ],
+        "timed": [
+          "Take out every example to avoid bias.",
+          "Strip the examples to prevent them skewing the model."
+        ]
+      }
+    ],
+    "explanation": "Representative, consistently formatted few-shot examples are the standard lever for edge-case reliability. Higher temperature increases variance; abstract prose is weaker than concrete demonstrations; removing examples discards the most reliable signal."
+  },
+  "d3-004": {
+    "domain": "d3",
+    "topic": "Chain-of-thought",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "To \"improve accuracy,\" a team enables step-by-step reasoning / extended thinking on a simple, high-volume classification call. Latency and cost jump with no measurable accuracy gain. What is the right call?",
+      "A high-volume, simple classification adds extended thinking for accuracy, but it only adds cost and latency. What should change?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Reserve chain-of-thought / extended thinking for genuinely hard reasoning; right-size it away on simple high-volume tasks.",
+          "Drop the reasoning step here — it is for hard problems, not simple high-volume classification."
+        ],
+        "timed": [
+          "Remove extended thinking from this simple task and keep it for genuinely hard reasoning steps."
+        ]
+      },
+      {
+        "practice": [
+          "Increase the thinking budget further to get the accuracy gain."
+        ],
+        "timed": [
+          "Give it a larger thinking budget to unlock accuracy.",
+          "Raise the reasoning budget until accuracy improves."
+        ]
+      },
+      {
+        "practice": [
+          "Switch to a more capable model but keep the reasoning step."
+        ],
+        "timed": [
+          "Upgrade the model and retain the thinking step.",
+          "Move to a stronger model while keeping extended thinking on."
+        ]
+      },
+      {
+        "practice": [
+          "Always enable thinking everywhere; more reasoning is always better."
+        ],
+        "timed": [
+          "Turn on thinking for every call as a rule.",
+          "Keep reasoning on universally since it never hurts."
+        ]
+      }
+    ],
+    "explanation": "Chain-of-thought and extended thinking help on hard reasoning, not simple high-volume classification, where they add cost and latency for no gain. Bigger budgets or models keep paying that cost; \"always think more\" is the anti-pattern being tested."
+  },
+  "d3-005": {
+    "domain": "d3",
+    "topic": "Failure modes",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A prompt works in testing but in production occasionally receives empty or malformed input and confidently produces garbage. What should be added?",
+      "In production a prompt sometimes gets missing or malformed input and emits confident nonsense. Which addition fixes this?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Validate/guard the input and instruct the model how to respond when input is missing or malformed (e.g. return a defined error or \"insufficient input\").",
+          "Add input validation plus an explicit instruction for the empty/malformed case so it fails cleanly."
+        ],
+        "timed": [
+          "Guard against bad input and tell the model to return a defined fallback when the input is missing or malformed."
+        ]
+      },
+      {
+        "practice": [
+          "Assume input is always valid since it was valid in testing."
+        ],
+        "timed": [
+          "Trust that input is always well-formed as in testing.",
+          "Treat the input as guaranteed valid based on test results."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature so the model copes with odd input."
+        ],
+        "timed": [
+          "Increase temperature to better handle strange input.",
+          "Turn temperature up so malformed input is tolerated."
+        ]
+      },
+      {
+        "practice": [
+          "Add more examples of well-formed input only."
+        ],
+        "timed": [
+          "Supply additional valid-input examples.",
+          "Provide more examples, all of them well-formed."
+        ]
+      }
+    ],
+    "explanation": "The unhandled failure mode is malformed/empty input; the fix is input validation plus an explicit instruction for that case so the model fails cleanly instead of confabulating. Assuming valid input ignores the failure; temperature is irrelevant; more valid-only examples never teach the bad-input path."
+  },
+  "d3-006": {
+    "domain": "d3",
+    "topic": "JSON schema enforcement",
+    "archetype": "critique-output",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A prompt instructs the model to 'respond in JSON,' but parsing fails for ~15% of production responses. Which change most reliably fixes it?",
+      "In production, ~15% of responses to a 'return JSON' prompt fail to parse. What is the most dependable fix?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Constrain output with a schema (tool/structured output) and add a validation-and-retry loop on parse failure.",
+          "Enforce a JSON schema and re-prompt automatically when validation fails."
+        ],
+        "timed": [
+          "Bind the response to a typed schema via structured output and retry on validation errors."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature so the model is more flexible about format."
+        ],
+        "timed": [
+          "Increase sampling temperature to loosen the formatting.",
+          "Turn temperature up so the model varies the format."
+        ]
+      },
+      {
+        "practice": [
+          "Add 'please return valid JSON, this is important' to the prompt."
+        ],
+        "timed": [
+          "Append a stronger plea for valid JSON to the instructions.",
+          "Tell the model more emphatically to produce valid JSON."
+        ]
+      },
+      {
+        "practice": [
+          "Make the prompt much longer with more prose explanation."
+        ],
+        "timed": [
+          "Expand the prompt with additional descriptive prose.",
+          "Add more explanatory text to the prompt."
+        ]
+      }
+    ],
+    "explanation": "Reliable structured output comes from schema enforcement + a validation/retry loop, not from politer or longer prompts. Higher temperature makes format less reliable. The question rewards reading the proposed fixes critically - three are superstition, one is engineering."
+  },
+  "d3-007": {
+    "domain": "d3",
+    "topic": "Structured output",
+    "archetype": "best-practice",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "You need Claude to return data your code can parse directly into typed fields, every time. What is the recommended approach?",
+      "Downstream code must consume Claude’s output as typed fields without brittle parsing. Which approach is recommended?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Define a schema and use tool/structured output to bind the response to it, then validate the result.",
+          "Use structured output against a declared schema and verify the parsed result."
+        ],
+        "timed": [
+          "Specify a schema and have the model emit structured output that conforms to it, validating before use."
+        ]
+      },
+      {
+        "practice": [
+          "Ask for JSON in prose and parse whatever comes back loosely."
+        ],
+        "timed": [
+          "Request JSON in the prompt and parse it leniently.",
+          "Have it write JSON in free text and best-effort parse it."
+        ]
+      },
+      {
+        "practice": [
+          "Let the model answer in free text and extract fields with regex afterward."
+        ],
+        "timed": [
+          "Post-process free-text answers with regular expressions.",
+          "Pull the fields out of prose using regex."
+        ]
+      },
+      {
+        "practice": [
+          "Just lower the temperature and keep asking for JSON in plain text."
+        ],
+        "timed": [
+          "Only reduce temperature while still requesting plain-text JSON.",
+          "Keep prose JSON requests but turn temperature down."
+        ]
+      }
+    ],
+    "explanation": "Schema-bound structured output (with validation) is the reliable path to typed, parseable data. Prose-JSON parsing, regex extraction, and temperature tweaks are all brittle workarounds that fail on the long tail of formatting variation."
+  },
+  "d3-008": {
+    "domain": "d3",
+    "topic": "Validation retry loops",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A validation retry loop re-prompts on bad output but resends the exact same prompt every time, with no retry limit. On a genuinely malformed request it loops forever. What should change?",
+      "A retry-on-invalid loop reissues the identical prompt unboundedly and can spin forever on a bad request. Which fix is correct?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Feed the validation error back into the re-prompt so the model can correct, and cap retries with a fallback.",
+          "Include the specific failure in each retry and bound the attempts with a terminal fallback."
+        ],
+        "timed": [
+          "Pass the validation error into the next attempt to guide correction, and limit retries with a defined fallback."
+        ]
+      },
+      {
+        "practice": [
+          "Just raise the maximum number of retries."
+        ],
+        "timed": [
+          "Increase the retry cap so it eventually succeeds.",
+          "Allow more attempts before giving up."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature on each retry to shake loose a valid answer."
+        ],
+        "timed": [
+          "Bump temperature every retry to vary the output.",
+          "Increase temperature with each attempt."
+        ]
+      },
+      {
+        "practice": [
+          "Remove validation so the loop never triggers."
+        ],
+        "timed": [
+          "Drop the validation step entirely.",
+          "Stop validating so retries never fire."
+        ]
+      }
+    ],
+    "explanation": "Re-prompting with the same text gives the model no new information; the fix is to feed the validation error back and bound retries with a fallback. More retries or higher temperature still gamble blindly; removing validation just ships the bad output."
+  },
+  "d3-009": {
+    "domain": "d3",
+    "topic": "Hallucination prevention",
+    "archetype": "critique-output",
+    "difficulty": "hard",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "To reduce hallucination in a RAG answer bot, an AI suggests: raise temperature for creativity, drop the \"cite sources\" instruction to save tokens, and let the model answer from general knowledge when retrieval is empty. What is the right critique?",
+      "An AI proposes cutting RAG hallucinations by increasing temperature, removing citation requirements, and answering from general knowledge on empty retrieval. How should you respond?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "All three changes increase hallucination — keep temperature low, enforce grounding/citations, and instruct the model to say it cannot find the answer when retrieval is empty.",
+          "Reject every part: low temperature, required citations, and an explicit \"not found\" path are what prevent hallucination."
+        ],
+        "timed": [
+          "Push back on all three: keep sampling low, require source citations, and have it decline when retrieval returns nothing."
+        ]
+      },
+      {
+        "practice": [
+          "Agree — the suggestions will make answers more natural and reduce hallucination."
+        ],
+        "timed": [
+          "Accept them, since they make responses more fluent.",
+          "Approve the changes for more natural answers."
+        ]
+      },
+      {
+        "practice": [
+          "Only the temperature change matters; the other two are fine."
+        ],
+        "timed": [
+          "Just the temperature point is relevant.",
+          "The citation and empty-retrieval changes are harmless."
+        ]
+      },
+      {
+        "practice": [
+          "It should answer confidently from general knowledge whenever retrieval is weak."
+        ],
+        "timed": [
+          "When retrieval is thin, answer assertively from general knowledge.",
+          "Default to confident general-knowledge answers on weak retrieval."
+        ]
+      }
+    ],
+    "explanation": "Each proposed change removes a hallucination safeguard: low temperature, citation/grounding, and a \"not found\" path. The correct response rejects all three. Agreeing, excusing two of them, or answering from general knowledge on empty retrieval all increase fabrication."
+  },
+  "d3-010": {
+    "domain": "d3",
+    "topic": "Prompt evaluation",
+    "archetype": "critique-output",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A team ships prompt changes by eyeballing a few outputs in the playground and merging if they \"look good.\" Regressions keep slipping through. What is the right critique?",
+      "Prompt edits are validated by glancing at a couple of playground outputs before merging, and regressions recur. How should the process change?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Build an eval set of graded test cases (code-based and/or model-based grading) and run it automatically on every prompt change.",
+          "Introduce an automated evaluation suite with scored cases that gates prompt changes."
+        ],
+        "timed": [
+          "Create a graded test dataset and run automated evals on each prompt change rather than eyeballing."
+        ]
+      },
+      {
+        "practice": [
+          "Just manually review more outputs each time before merging."
+        ],
+        "timed": [
+          "Eyeball a larger sample of outputs before merging.",
+          "Hand-check more examples each release."
+        ]
+      },
+      {
+        "practice": [
+          "Accept it — LLM output is inherently untestable, so manual checks are all you can do."
+        ],
+        "timed": [
+          "Conclude that LLM output cannot be tested and keep manual review.",
+          "Treat prompts as untestable and rely on manual spot checks."
+        ]
+      },
+      {
+        "practice": [
+          "Only verify the happy-path example and skip the rest."
+        ],
+        "timed": [
+          "Check the happy path alone and move on.",
+          "Validate just the primary case before merging."
+        ]
+      }
+    ],
+    "explanation": "Ad hoc eyeballing cannot catch regressions; an automated eval set with graded cases (code- and/or model-based) run on every change can. Reviewing more by hand does not scale, \"LLM output is untestable\" is false, and happy-path-only checking is how regressions slip in."
+  },
+  "d3-011": {
+    "domain": "d3",
+    "topic": "Temperature & sampling",
+    "archetype": "what-breaks",
+    "difficulty": "core",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A deterministic extraction task that must return the same structured result for the same input runs at temperature 1.0 and gives inconsistent outputs. What should change?",
+      "An extraction step needs identical structured output for identical input but varies because it runs at high temperature. Which change fixes it?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Lower the temperature toward 0 for deterministic, structured extraction.",
+          "Use a near-zero temperature so the extraction is consistent."
+        ],
+        "timed": [
+          "Set temperature close to 0 to make the structured extraction deterministic."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature further to stabilize the output."
+        ],
+        "timed": [
+          "Increase temperature to make results steadier.",
+          "Turn temperature up to reduce variation."
+        ]
+      },
+      {
+        "practice": [
+          "Keep temperature high but add more examples."
+        ],
+        "timed": [
+          "Leave temperature high and supply extra examples.",
+          "Retain high temperature and add few-shot examples."
+        ]
+      },
+      {
+        "practice": [
+          "Switch to a larger model and keep temperature at 1.0."
+        ],
+        "timed": [
+          "Upgrade the model while keeping temperature at 1.0.",
+          "Move to a bigger model and leave temperature high."
+        ]
+      }
+    ],
+    "explanation": "Deterministic, structured tasks call for a low (near-zero) temperature. Raising temperature increases variance (the opposite of the goal); examples help format but not determinism at high temperature; a bigger model at temperature 1.0 still samples variably."
+  },
+  "d3-012": {
+    "domain": "d3",
+    "topic": "Prompt caching",
+    "archetype": "foundational",
+    "difficulty": "core",
+    "dimensions": [],
+    "claudeSpecific": true,
+    "stem": [
+      "What does the cache_control parameter (prompt caching) do?",
+      "What is the effect of marking part of a prompt with cache_control?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "It marks a stable prefix so it can be cached and reused across calls, reducing latency and cost on repeated context.",
+          "It designates a reusable prefix that is served from cache on later calls, cutting cost and latency."
+        ],
+        "timed": [
+          "It flags a stable context prefix for caching so repeated calls reuse it instead of reprocessing it."
+        ]
+      },
+      {
+        "practice": [
+          "It stores the model’s answers and replays them verbatim on similar prompts."
+        ],
+        "timed": [
+          "It caches outputs and returns them again for similar prompts.",
+          "It memoizes responses to reuse the same answer."
+        ]
+      },
+      {
+        "practice": [
+          "It permanently fine-tunes the model on the cached prompt."
+        ],
+        "timed": [
+          "It bakes the prompt into the model via fine-tuning.",
+          "It trains the model on the prompt for good."
+        ]
+      },
+      {
+        "practice": [
+          "It compresses the model’s output to save tokens."
+        ],
+        "timed": [
+          "It shrinks the response to reduce output tokens.",
+          "It applies compression to the generated text."
+        ]
+      }
+    ],
+    "explanation": "Prompt caching (cache_control) caches a stable input prefix so repeated context is not reprocessed, cutting latency and cost. It does not cache or replay outputs, does not fine-tune the model, and does not compress responses."
+  },
+  "d4-001": {
+    "domain": "d4",
+    "topic": "Tool use fundamentals",
+    "archetype": "best-practice",
+    "difficulty": "core",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "A tool is frequently called with wrong or missing arguments. What is the most effective fix?",
+      "The model keeps mis-calling a tool (bad or absent parameters). Which change helps most?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Improve the tool’s schema — a precise name, a clear description, and well-described parameters so the model knows when and how to call it.",
+          "Write a clear tool description and parameter docs so the model can call it correctly."
+        ],
+        "timed": [
+          "Sharpen the tool definition: precise name, explicit description, and clearly documented parameters."
+        ]
+      },
+      {
+        "practice": [
+          "Give the model more tools so it has alternatives."
+        ],
+        "timed": [
+          "Add extra tools as fallback options.",
+          "Expose additional tools the model can choose instead."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature so the model is more flexible with arguments."
+        ],
+        "timed": [
+          "Increase temperature to loosen argument handling.",
+          "Turn temperature up so arguments vary more freely."
+        ]
+      },
+      {
+        "practice": [
+          "Make the system prompt much longer to explain the tool in prose."
+        ],
+        "timed": [
+          "Add lengthy prose about the tool to the system prompt.",
+          "Describe the tool at length in the system message instead of the schema."
+        ]
+      }
+    ],
+    "explanation": "The model calls tools from their schemas, so a precise name, description, and parameter docs are the highest-leverage fix. More tools add confusion; higher temperature increases argument variance; prose in the system prompt is a weaker, redundant substitute for a good schema."
+  },
+  "d4-002": {
+    "domain": "d4",
+    "topic": "Multi-tool systems",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "An agent exposes 30 overlapping tools with vague names like \"doStuff\" and \"handle,\" and it frequently picks the wrong one. What is the fix?",
+      "With 30 ambiguously named, overlapping tools, the model keeps selecting the wrong tool. Which change addresses the root cause?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Curate a focused set of tools with clear, distinct names and descriptions, removing overlap.",
+          "Trim and disambiguate the toolset so each tool has a single clear purpose."
+        ],
+        "timed": [
+          "Reduce to a focused set of well-named, non-overlapping tools with clear descriptions."
+        ]
+      },
+      {
+        "practice": [
+          "Add more tools so there is always one that fits."
+        ],
+        "timed": [
+          "Expand the toolset to cover more cases.",
+          "Provide even more tools so something always matches."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature so the model explores tool choices."
+        ],
+        "timed": [
+          "Increase temperature to vary tool selection.",
+          "Turn temperature up so it tries different tools."
+        ]
+      },
+      {
+        "practice": [
+          "Merge all 30 into one mega-tool that takes a \"mode\" argument."
+        ],
+        "timed": [
+          "Combine everything into a single tool with a mode parameter.",
+          "Collapse the tools into one multipurpose tool keyed by a mode flag."
+        ]
+      }
+    ],
+    "explanation": "Wrong-tool selection stems from overlapping, vaguely described tools; the fix is a curated, clearly distinguished set. More tools worsen ambiguity; temperature adds randomness to selection; a single mode-switched mega-tool just hides the ambiguity inside one opaque interface."
+  },
+  "d4-003": {
+    "domain": "d4",
+    "topic": "MCP architecture",
+    "archetype": "foundational",
+    "difficulty": "core",
+    "dimensions": [],
+    "claudeSpecific": true,
+    "stem": [
+      "What problem does the Model Context Protocol (MCP) primarily solve?",
+      "What is MCP fundamentally for?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "It standardizes how tools, data, and prompts are exposed to models, moving those definitions out of each app into reusable MCP servers many clients can connect to.",
+          "It is an open standard so a tool/data source is defined once in an MCP server and reused across clients."
+        ],
+        "timed": [
+          "It provides a standard interface so tools, resources, and prompts live in reusable MCP servers instead of being re-implemented per app."
+        ]
+      },
+      {
+        "practice": [
+          "It is a faster inference engine for running models locally."
+        ],
+        "timed": [
+          "It is a local high-speed inference runtime.",
+          "It is an engine that speeds up model execution."
+        ]
+      },
+      {
+        "practice": [
+          "It removes the need for prompting by configuring models declaratively."
+        ],
+        "timed": [
+          "It replaces prompts with declarative model config.",
+          "It lets you configure models so prompting is unnecessary."
+        ]
+      },
+      {
+        "practice": [
+          "It is a vector database optimized for embeddings."
+        ],
+        "timed": [
+          "It is an embeddings-focused vector store.",
+          "It is a database built for vector search."
+        ]
+      }
+    ],
+    "explanation": "MCP is an open protocol that standardizes exposing tools, resources, and prompts via servers reusable across clients — shifting integration out of each application. It is not an inference engine, not a replacement for prompting, and not a vector database."
+  },
+  "d4-004": {
+    "domain": "d4",
+    "topic": "MCP server building",
+    "archetype": "critique-output",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "An AI-generated MCP server defines one tool whose description is just \"tool,\" returns the raw 500-line API response, and returns nothing on failure. What is the right critique?",
+      "Reviewing an MCP server with a tool described only as \"tool,\" dumping full raw API output and silently returning nothing on error — what should change?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Give the tool a precise description, return a concise structured result instead of the raw dump, and surface failures as explicit error results the model can act on.",
+          "Add a clear description, trim the output to what the model needs, and return real errors rather than nothing."
+        ],
+        "timed": [
+          "Describe the tool precisely, return a scoped structured result, and report failures as explicit errors to the model."
+        ]
+      },
+      {
+        "practice": [
+          "It is fine — Claude can parse any output, so the description and errors do not matter."
+        ],
+        "timed": [
+          "No change needed; the model can handle raw output and missing errors.",
+          "Acceptable, since the model parses anything."
+        ]
+      },
+      {
+        "practice": [
+          "The only fix is to truncate the output to a fixed character count."
+        ],
+        "timed": [
+          "Just cap the output length and leave the rest.",
+          "Only a hard output-length limit is required."
+        ]
+      },
+      {
+        "practice": [
+          "Add authentication to the server and change nothing else."
+        ],
+        "timed": [
+          "Only add auth; the description and errors are fine.",
+          "Bolt on authentication and leave the tool as is."
+        ]
+      }
+    ],
+    "explanation": "A good MCP tool needs a clear description (so the model selects/uses it), a scoped structured result (raw dumps waste context and bury the answer), and explicit error results. \"Claude can parse anything\" ignores selection and error handling; blind truncation can cut the answer; auth alone leaves the core problems."
+  },
+  "d4-005": {
+    "domain": "d4",
+    "topic": "MCP primitives",
+    "archetype": "foundational",
+    "difficulty": "core",
+    "dimensions": [],
+    "claudeSpecific": true,
+    "stem": [
+      "You want Claude to read a config file's contents on demand but never modify it, and the host app controls when it's available. Which MCP primitive fits?",
+      "Which MCP primitive exposes read-only, app-controlled data that Claude can pull in but not change?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "A Resource (app-controlled, read-only data).",
+          "An MCP Resource - read-only, controlled by the app."
+        ],
+        "timed": [
+          "A Resource - application-controlled, read-only context."
+        ]
+      },
+      {
+        "practice": [
+          "A Tool (model-controlled action)."
+        ],
+        "timed": [
+          "A Tool - a model-invoked action.",
+          "A Tool, which the model calls to act."
+        ]
+      },
+      {
+        "practice": [
+          "A Prompt (user-controlled template)."
+        ],
+        "timed": [
+          "A Prompt - a user-selected template.",
+          "A Prompt, chosen by the user."
+        ]
+      },
+      {
+        "practice": [
+          "A Sampling request back to the client."
+        ],
+        "timed": [
+          "A client-side Sampling callback.",
+          "A Sampling call back to the host."
+        ]
+      }
+    ],
+    "explanation": "MCP Resources are app-controlled, read-only data Claude can access. Tools are model-controlled actions (would allow modification); Prompts are user-controlled templates; Sampling is the server asking the client to run a completion. Clean primitive recall - capped foundational coverage."
+  },
+  "d4-006": {
+    "domain": "d4",
+    "topic": "MCP client implementation",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "An MCP client opens a fresh connection and re-runs the initialization handshake on every single tool call, adding latency and sometimes hitting the server’s connection limit. What is the better approach?",
+      "A client re-establishes the MCP connection and handshake per tool call, causing latency and connection-limit errors. Which fix is correct?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Establish the client session once and reuse the persistent connection across tool calls.",
+          "Initialize the MCP session a single time and keep the connection open for subsequent calls."
+        ],
+        "timed": [
+          "Open and handshake the MCP session once, then reuse that connection for all later tool calls."
+        ]
+      },
+      {
+        "practice": [
+          "Open even more connections in parallel to spread the load."
+        ],
+        "timed": [
+          "Spin up additional parallel connections to share load.",
+          "Create more concurrent connections to ease pressure."
+        ]
+      },
+      {
+        "practice": [
+          "Skip the initialization handshake to save time."
+        ],
+        "timed": [
+          "Drop the init handshake to cut latency.",
+          "Bypass initialization to go faster."
+        ]
+      },
+      {
+        "practice": [
+          "Switch the transport on each call until one is fast enough."
+        ],
+        "timed": [
+          "Rotate transports per call seeking a faster one.",
+          "Try a different transport every call until latency drops."
+        ]
+      }
+    ],
+    "explanation": "An MCP client should initialize once and reuse a persistent session; re-handshaking per call is the latency and connection-exhaustion bug. More parallel connections worsen exhaustion; skipping the handshake breaks the protocol; rotating transports is cargo-cult and addresses nothing."
+  },
+  "d4-007": {
+    "domain": "d4",
+    "topic": "Static vs templated resources",
+    "archetype": "best-practice",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "An MCP server must expose user profiles addressable by user id. Should it use a static resource or a templated resource?",
+      "You need an MCP server to serve per-user profile data keyed by id. Which resource type is appropriate?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "A templated (parameterized) resource, e.g. users://{id}, since the content is keyed by a variable.",
+          "A templated resource with a URI parameter for the user id."
+        ],
+        "timed": [
+          "A parameterized resource template like users://{id} that takes the id as a variable."
+        ]
+      },
+      {
+        "practice": [
+          "A separate static resource registered for every individual user."
+        ],
+        "timed": [
+          "One static resource per user, registered individually.",
+          "A fixed static resource enumerated for each user."
+        ]
+      },
+      {
+        "practice": [
+          "A Tool that writes profile data on request."
+        ],
+        "timed": [
+          "A write-capable Tool for profiles.",
+          "A Tool whose job is to write the profile."
+        ]
+      },
+      {
+        "practice": [
+          "A Prompt template that embeds each profile."
+        ],
+        "timed": [
+          "A Prompt that bakes in each profile.",
+          "A user-selected Prompt containing the profile."
+        ]
+      }
+    ],
+    "explanation": "Content addressed by a variable (the user id) is a templated resource (users://{id}). Registering a static resource per user does not scale; a Tool implies an action/write rather than read-only access; a Prompt is a user-controlled instruction template, not a data source."
+  },
+  "d4-008": {
+    "domain": "d4",
+    "topic": "MCP Server Inspector",
+    "archetype": "foundational",
+    "difficulty": "core",
+    "dimensions": [],
+    "claudeSpecific": true,
+    "stem": [
+      "What is the MCP Server Inspector used for?",
+      "What does the MCP Server Inspector do?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "A browser-based tool to test and inspect an MCP server’s tools, resources, and prompts during development.",
+          "A dev tool for interactively exercising an MCP server’s exposed tools/resources/prompts."
+        ],
+        "timed": [
+          "A browser-based utility for testing and exploring an MCP server’s tools, resources, and prompts while developing."
+        ]
+      },
+      {
+        "practice": [
+          "A service that deploys your MCP server to production."
+        ],
+        "timed": [
+          "A deployment pipeline for MCP servers.",
+          "A tool that pushes the server live."
+        ]
+      },
+      {
+        "practice": [
+          "A dashboard that monitors the model’s token usage."
+        ],
+        "timed": [
+          "A token-usage monitoring dashboard.",
+          "A console for tracking model token spend."
+        ]
+      },
+      {
+        "practice": [
+          "A code generator that writes the MCP server for you."
+        ],
+        "timed": [
+          "A scaffolder that generates the server code.",
+          "A generator that authors the server implementation."
+        ]
+      }
+    ],
+    "explanation": "The MCP Server Inspector is a browser-based development tool for testing and inspecting a server’s tools, resources, and prompts. It does not deploy, monitor token usage, or generate the server code."
+  },
+  "d4-009": {
+    "domain": "d4",
+    "topic": "Web search tool",
+    "archetype": "critique-output",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "To answer questions about current events, an AI suggests relying on the model’s training knowledge and raising temperature for \"fresher\" answers. What is the right critique?",
+      "For up-to-the-minute questions, a proposal leans on training data and higher temperature for freshness. How should you respond?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Training knowledge is stale and temperature adds no recency — use the web search tool to ground answers in current sources.",
+          "Neither training data nor temperature provides recency; integrate the web search tool to fetch current information."
+        ],
+        "timed": [
+          "Reject it: give the model the web search tool to ground answers in live sources, since training data is dated and temperature is irrelevant."
+        ]
+      },
+      {
+        "practice": [
+          "Agree — higher temperature makes the model produce more current answers."
+        ],
+        "timed": [
+          "Accept it; raising temperature yields fresher facts.",
+          "Approve, since temperature improves recency."
+        ]
+      },
+      {
+        "practice": [
+          "Only the temperature suggestion is wrong; training knowledge is current enough."
+        ],
+        "timed": [
+          "Just drop the temperature idea; training data is recent enough.",
+          "The training-knowledge part is fine; only temperature is the issue."
+        ]
+      },
+      {
+        "practice": [
+          "Fine-tune the model nightly on the news instead."
+        ],
+        "timed": [
+          "Retrain the model each night on current events.",
+          "Do nightly fine-tunes on the latest news."
+        ]
+      }
+    ],
+    "explanation": "Current-events questions need live grounding via the web search tool; training data is stale and temperature has nothing to do with recency. Agreeing or excusing the training-knowledge claim keeps the staleness; nightly fine-tuning is wildly impractical compared to a search tool."
+  },
+  "d4-010": {
+    "domain": "d4",
+    "topic": "Tool-use error handling",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "When a tool fails, an agent appends the raw stack trace to the conversation and continues without flagging it as an error, so the model often ignores it. What is the best practice?",
+      "A failed tool call is added to the transcript as an unlabeled raw stack trace, and the model treats it as normal output. Which approach is correct?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Return the failure as a tool result explicitly marked as an error, with a concise message, so the model can retry or adjust.",
+          "Send back a clear, error-flagged tool result so the model recognizes and reacts to the failure."
+        ],
+        "timed": [
+          "Hand the model an explicit error result with a short message so it can decide how to recover."
+        ]
+      },
+      {
+        "practice": [
+          "Hide the error entirely and let the model proceed as if it succeeded."
+        ],
+        "timed": [
+          "Suppress the error and continue as though it worked.",
+          "Drop the failure silently and carry on."
+        ]
+      },
+      {
+        "practice": [
+          "Abort the entire task whenever any tool returns an error."
+        ],
+        "timed": [
+          "Fail the whole task on any tool error.",
+          "Terminate everything if a tool errors."
+        ]
+      },
+      {
+        "practice": [
+          "Retry the tool indefinitely without telling the model."
+        ],
+        "timed": [
+          "Silently re-run the tool forever.",
+          "Keep retrying with no limit and no signal to the model."
+        ]
+      }
+    ],
+    "explanation": "Tool failures should come back as explicit, concise error results so the model can adapt. A raw unflagged trace reads as data; hiding the error invites confabulation; aborting on every error is brittle; silent infinite retry can hang and tells the model nothing."
+  },
+  "d4-011": {
+    "domain": "d4",
+    "topic": "Tool selection",
+    "archetype": "tradeoff",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A task could be solved by stuffing a large reference dataset into the prompt, by RAG over it, or by giving the model a tool to query the source live. The data is large and changes hourly. Best choice?",
+      "You can put a big, hourly-changing dataset in-context, index it for RAG, or expose a live query tool. Which fits best?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Give the model a tool to query the live source, so answers stay fresh without bloating context.",
+          "Expose a live-query tool — it avoids stale data and avoids stuffing the context window."
+        ],
+        "timed": [
+          "Provide a tool that queries the source at request time, keeping answers current and the context lean."
+        ]
+      },
+      {
+        "practice": [
+          "Stuff the entire dataset into the prompt on every call."
+        ],
+        "timed": [
+          "Put the whole dataset in-context each call.",
+          "Include all the data in the prompt every time."
+        ]
+      },
+      {
+        "practice": [
+          "Build a RAG index and accept it is stale between hourly re-indexes."
+        ],
+        "timed": [
+          "Use RAG and tolerate staleness between re-index runs.",
+          "Index for RAG even though it lags the hourly changes."
+        ]
+      },
+      {
+        "practice": [
+          "Hardcode the most common answers and skip the data source."
+        ],
+        "timed": [
+          "Bake in the frequent answers and ignore the live data.",
+          "Precompute common answers instead of querying."
+        ]
+      }
+    ],
+    "explanation": "For large, frequently-changing data, a live-query tool gives fresh answers without context bloat — the right call among tool vs. context vs. RAG. In-context stuffing is huge and stale by the next hour; a RAG index lags between re-indexes; hardcoding cannot track hourly change."
+  },
+  "d5-001": {
+    "domain": "d5",
+    "topic": "Context window limits",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A RAG system keeps appending more retrieved chunks as users ask follow-ups. Eventually requests exceed the context limit and the earliest content — including the system-prompt rules — is truncated, causing erratic behavior. What is the fix?",
+      "As a conversation grows, a RAG app overflows the context window and silently drops its earliest tokens (the system instructions), making behavior inconsistent. Which change fixes this?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Budget the context: cap retrieved chunks, always preserve the system prompt and critical instructions, and summarize or drop low-relevance history before it overflows.",
+          "Manage the window explicitly — limit retrieval, keep the system instructions pinned, and compact stale history."
+        ],
+        "timed": [
+          "Enforce a context budget: bound retrieved chunks, keep the system prompt and key rules, and summarize or evict low-value history before the limit."
+        ]
+      },
+      {
+        "practice": [
+          "Trust the model to ignore the extra content once the window is full."
+        ],
+        "timed": [
+          "Assume the model will just disregard overflow.",
+          "Rely on the model to skip the excess when full."
+        ]
+      },
+      {
+        "practice": [
+          "Send everything and hope the important parts are not the ones truncated."
+        ],
+        "timed": [
+          "Submit it all and hope the wrong tokens are not dropped.",
+          "Pass the whole context and gamble on what gets cut."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature so the model is more robust to missing context."
+        ],
+        "timed": [
+          "Increase temperature to cope with truncated context.",
+          "Turn temperature up to offset the lost instructions."
+        ]
+      }
+    ],
+    "explanation": "The failure is silent truncation at the context limit, which can drop the system instructions; the fix is an explicit context budget that pins critical content and compacts the rest. Trusting the model to ignore overflow, hoping, or changing temperature do nothing about what gets truncated."
+  },
+  "d5-002": {
+    "domain": "d5",
+    "topic": "Model selection",
+    "archetype": "tradeoff",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "You must pick one model for a latency-sensitive autocomplete feature: requests are simple and extremely high-volume. Which selection criterion should dominate?",
+      "Choosing a single model for high-volume, latency-critical autocomplete on simple inputs — what should drive the choice?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Choose the fastest, lowest-cost model that still clears the quality bar, given the simplicity, volume, and latency needs.",
+          "Prioritize a fast, cheap (e.g. Haiku-tier) model that is good enough for the simple, high-volume task."
+        ],
+        "timed": [
+          "Pick the cheapest, fastest model that meets the quality bar, since the task is simple, high-volume, and latency-bound."
+        ]
+      },
+      {
+        "practice": [
+          "Always select the most capable model to be safe."
+        ],
+        "timed": [
+          "Default to the top-tier model for safety.",
+          "Choose the strongest model regardless of the task."
+        ]
+      },
+      {
+        "practice": [
+          "Select whichever model has the largest context window."
+        ],
+        "timed": [
+          "Pick the model with the biggest context window.",
+          "Optimize the choice for maximum context size."
+        ]
+      },
+      {
+        "practice": [
+          "Pick the newest model regardless of its latency or cost profile."
+        ],
+        "timed": [
+          "Choose the latest release whatever its cost/latency.",
+          "Go with the newest model irrespective of speed or price."
+        ]
+      }
+    ],
+    "explanation": "For simple, high-volume, latency-sensitive work, speed and cost dominate — pick the cheapest fast model that meets the quality bar. Top-tier-everywhere wastes money and latency; largest context is irrelevant for short autocomplete; newest-for-its-own-sake ignores the actual constraints."
+  },
+  "d5-003": {
+    "domain": "d5",
+    "topic": "Prompt caching",
+    "archetype": "tradeoff",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "A pipeline resends a 40-page policy document as context on every one of thousands of calls. Latency and cost are high; the document rarely changes. What is the best fix?",
+      "Thousands of calls each prepend the same large, rarely-changing document. Cost and latency are the complaint. Which change helps most?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Apply prompt caching (cache_control) to the static document prefix so it is not reprocessed each call.",
+          "Mark the unchanging prefix with a cache breakpoint to reuse it across calls."
+        ],
+        "timed": [
+          "Set a cache_control breakpoint on the stable prefix so repeated context is served from cache."
+        ]
+      },
+      {
+        "practice": [
+          "Switch the whole pipeline to the smallest model to cut cost."
+        ],
+        "timed": [
+          "Move everything to the cheapest model tier.",
+          "Downgrade the entire pipeline to the smallest model."
+        ]
+      },
+      {
+        "practice": [
+          "Truncate the document to its first page on every call."
+        ],
+        "timed": [
+          "Send only the first page of the document each time.",
+          "Clip the document to page one for every request."
+        ]
+      },
+      {
+        "practice": [
+          "Request a rate-limit increase to push more calls through."
+        ],
+        "timed": [
+          "Ask for higher rate limits to raise throughput.",
+          "Get the rate limit bumped to send more calls."
+        ]
+      }
+    ],
+    "explanation": "A large, static, frequently-reused prefix is the textbook prompt-caching case - cache_control cuts latency and cost without losing context. Downgrading the model risks quality, truncation loses information, and a rate-limit bump addresses throughput not the per-call waste. Judgment: match the fix to the actual cost driver."
+  },
+  "d5-004": {
+    "domain": "d5",
+    "topic": "RAG fundamentals",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A RAG bot indexes each 50-page document as one chunk and stuffs the top 5 whole documents into the prompt. Answers are vague and miss specifics. What is the core fix?",
+      "A retrieval system uses whole 50-page documents as single chunks; responses are unfocused and lose detail. Which change addresses the root cause?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Chunk documents into smaller, semantically coherent passages and retrieve/rank those, so the relevant specifics surface.",
+          "Split documents into focused passages and retrieve at passage granularity."
+        ],
+        "timed": [
+          "Index smaller, meaning-coherent chunks and retrieve those passages instead of whole documents."
+        ]
+      },
+      {
+        "practice": [
+          "Retrieve more whole documents per query."
+        ],
+        "timed": [
+          "Pull back additional full documents each query.",
+          "Increase the number of whole documents retrieved."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature so answers are more specific."
+        ],
+        "timed": [
+          "Increase temperature to sharpen specificity.",
+          "Turn temperature up for more detailed answers."
+        ]
+      },
+      {
+        "practice": [
+          "Switch to a larger-context model and keep whole-document chunks."
+        ],
+        "timed": [
+          "Adopt a bigger context window and retain full-document chunks.",
+          "Use a larger-context model without re-chunking."
+        ]
+      }
+    ],
+    "explanation": "Whole-document chunks bury the relevant passage and dilute retrieval; the core fix is smaller, semantically coherent chunks ranked at passage level. Retrieving more whole docs worsens dilution, temperature does not add precision, and a bigger context still feeds the model unfocused chunks."
+  },
+  "d5-005": {
+    "domain": "d5",
+    "topic": "Context discipline",
+    "archetype": "best-practice",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A long-running assistant starts giving inconsistent answers to the same question as the session grows. Which practice best maintains consistency?",
+      "Over a long session, an assistant drifts and contradicts its earlier answers. What is the recommended way to keep it consistent?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Maintain a stable, re-supplied summary of the durable facts and decisions, and trim volatile, low-relevance history.",
+          "Anchor key decisions/facts in a compact summary that is carried forward, dropping noisy history."
+        ],
+        "timed": [
+          "Keep a concise running summary of settled facts and decisions in context, pruning the volatile history around it."
+        ]
+      },
+      {
+        "practice": [
+          "Rely on the full verbatim transcript so nothing is ever lost."
+        ],
+        "timed": [
+          "Retain the entire transcript verbatim to be safe.",
+          "Keep every prior message in full so context is complete."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature so answers vary less."
+        ],
+        "timed": [
+          "Increase temperature to reduce variation.",
+          "Turn temperature up for steadier answers."
+        ]
+      },
+      {
+        "practice": [
+          "Restart the session before each question to avoid drift."
+        ],
+        "timed": [
+          "Begin a fresh session for every question.",
+          "Reset the conversation ahead of each query."
+        ]
+      }
+    ],
+    "explanation": "Consistency over long sessions comes from anchoring durable facts/decisions in a stable summary while trimming noise. A full verbatim transcript bloats and dilutes; higher temperature increases variance; restarting each time discards the context that makes answers coherent."
+  },
+  "d5-006": {
+    "domain": "d5",
+    "topic": "Rate limits & errors",
+    "archetype": "what-breaks",
+    "difficulty": "scenario",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "Under load, a service receives 429 and 529 responses and immediately retries in a tight loop, which makes the overload worse. What is the right handling?",
+      "When the API returns 429/529 errors, an app retries instantly and repeatedly, amplifying the overload. Which approach is correct?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Retry with exponential backoff and jitter, respect any retry-after hint, and cap the number of attempts.",
+          "Back off exponentially with jitter, honor retry-after, and bound retries."
+        ],
+        "timed": [
+          "Use capped exponential backoff with jitter and respect the retry-after header instead of immediate retries."
+        ]
+      },
+      {
+        "practice": [
+          "Retry immediately and more aggressively to get through sooner."
+        ],
+        "timed": [
+          "Retry faster and harder to push past the limit.",
+          "Hammer retries immediately to break through."
+        ]
+      },
+      {
+        "practice": [
+          "Ignore the errors and silently drop the affected requests."
+        ],
+        "timed": [
+          "Swallow the errors and discard those requests.",
+          "Suppress the 429/529s and drop the calls."
+        ]
+      },
+      {
+        "practice": [
+          "Switch to a different model on every 429 response."
+        ],
+        "timed": [
+          "Change models each time a 429 occurs.",
+          "Hop to another model on every rate-limit error."
+        ]
+      }
+    ],
+    "explanation": "Rate-limit/overload errors call for capped exponential backoff with jitter and respect for retry-after. Immediate aggressive retries worsen the overload; dropping requests loses work silently; swapping models per 429 is a non-fix that ignores the throttling signal."
+  },
+  "d5-007": {
+    "domain": "d5",
+    "topic": "Streaming responses",
+    "archetype": "best-practice",
+    "difficulty": "core",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "A user-facing chat shows a long blank pause before the full answer appears. Which change best improves perceived responsiveness?",
+      "Users wait through a blank delay until a chat reply fully arrives. What most improves the perceived latency?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Stream the response incrementally as it is generated, handling partial chunks in the UI.",
+          "Use streaming so tokens render as they arrive instead of after completion."
+        ],
+        "timed": [
+          "Stream the output token-by-token so the user sees it build, processing partial chunks."
+        ]
+      },
+      {
+        "practice": [
+          "Switch to a larger model to produce the answer faster."
+        ],
+        "timed": [
+          "Move to a bigger model for speed.",
+          "Use a more capable model to cut the wait."
+        ]
+      },
+      {
+        "practice": [
+          "Increase max_tokens so the answer is ready sooner."
+        ],
+        "timed": [
+          "Raise the max_tokens limit to speed things up.",
+          "Bump max_tokens so it finishes faster."
+        ]
+      },
+      {
+        "practice": [
+          "Raise the temperature to make generation quicker."
+        ],
+        "timed": [
+          "Increase temperature for faster output.",
+          "Turn temperature up to speed generation."
+        ]
+      }
+    ],
+    "explanation": "Streaming improves perceived responsiveness by rendering tokens as they generate (the UI must handle partial chunks). A bigger model is not necessarily faster and adds cost; max_tokens sets a ceiling, not speed; temperature does not affect latency."
+  },
+  "d5-008": {
+    "domain": "d5",
+    "topic": "Extended thinking",
+    "archetype": "tradeoff",
+    "difficulty": "scenario",
+    "dimensions": [
+      "judgment"
+    ],
+    "claudeSpecific": true,
+    "stem": [
+      "A pipeline has a complex multi-constraint planning step that produces shallow, error-prone output and a trivial formatting step that is fine. Where should you spend an extended-thinking budget?",
+      "Given one hard reasoning step and one simple formatting step, where is extended thinking worth enabling?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Enable extended thinking on the hard multi-constraint reasoning step, not the trivial formatting step.",
+          "Spend the thinking budget on the complex planning step and skip it on formatting."
+        ],
+        "timed": [
+          "Turn on extended thinking only for the demanding reasoning step, leaving the simple step without it."
+        ]
+      },
+      {
+        "practice": [
+          "Enable it on every step for consistency."
+        ],
+        "timed": [
+          "Apply thinking uniformly to all steps.",
+          "Switch it on everywhere for consistency."
+        ]
+      },
+      {
+        "practice": [
+          "Avoid extended thinking entirely to keep costs down."
+        ],
+        "timed": [
+          "Never use thinking, to minimize cost.",
+          "Disable it across the board for savings."
+        ]
+      },
+      {
+        "practice": [
+          "Enable it on the formatting step, since output quality matters most there."
+        ],
+        "timed": [
+          "Put the thinking budget on the formatting step.",
+          "Use extended thinking for the formatting work."
+        ]
+      }
+    ],
+    "explanation": "Extended thinking pays off on genuinely hard reasoning, so spend it on the multi-constraint planning step and not the trivial one. Enabling it everywhere wastes cost/latency, banning it leaves the hard step weak, and putting it on formatting targets the step that does not need it."
+  },
+  "d5-009": {
+    "domain": "d5",
+    "topic": "Output evaluation",
+    "archetype": "critique-output",
+    "difficulty": "hard",
+    "dimensions": [
+      "critical-eval",
+      "judgment"
+    ],
+    "claudeSpecific": false,
+    "stem": [
+      "To prove a new RAG pipeline is \"better,\" a team reports it \"feels more accurate\" after trying 10 hand-picked questions. What is the right critique?",
+      "A team claims a revised pipeline is an improvement based on a good impression from 10 cherry-picked queries. How should you respond?"
+    ],
+    "correctIndex": 0,
+    "options": [
+      {
+        "practice": [
+          "Measure it on a representative held-out eval set with defined metrics (e.g. grounded-answer accuracy, citation correctness) over many cases, using code- and/or model-based grading.",
+          "Build a representative test set with explicit metrics and grade many cases automatically rather than relying on impressions."
+        ],
+        "timed": [
+          "Evaluate against a held-out, representative dataset with concrete metrics scored across many cases, not a hand-picked anecdote."
+        ]
+      },
+      {
+        "practice": [
+          "Accept it — if it feels more accurate, it is more accurate."
+        ],
+        "timed": [
+          "Trust the impression that it feels better.",
+          "Take the \"feels more accurate\" judgment at face value."
+        ]
+      },
+      {
+        "practice": [
+          "Just try more hand-picked questions until confidence is high."
+        ],
+        "timed": [
+          "Keep adding cherry-picked questions until convinced.",
+          "Hand-select more examples to build confidence."
+        ]
+      },
+      {
+        "practice": [
+          "Only latency matters for a pipeline, so measure that instead."
+        ],
+        "timed": [
+          "Measure latency alone, since that is what counts.",
+          "Evaluate only speed and ignore accuracy."
+        ]
+      }
+    ],
+    "explanation": "A reliable comparison needs a representative held-out eval set with defined metrics graded over many cases — not an impression from cherry-picked questions. \"Feels more accurate\" is not measurement, more hand-picked cases compound selection bias, and latency-only ignores the accuracy claim being made."
+  }
+}

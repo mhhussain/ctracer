@@ -1,4 +1,4 @@
-import { PASS_PCT } from '../../data/practiceQuestions';
+import { PASS_PCT } from '../../lib/practiceEngine';
 import Sparkline from './Sparkline';
 
 export function fmtDate(ms) {

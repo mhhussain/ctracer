@@ -30,7 +30,18 @@ vi.mock('firebase/firestore', () => ({
 vi.mock('firebase/functions', () => ({
   getFunctions: vi.fn(() => ({})),
   connectFunctionsEmulator: vi.fn(),
-  httpsCallable: vi.fn(() => vi.fn()),
+  httpsCallable: vi.fn(() => vi.fn(async () => ({
+    data: {
+      questions: Array.from({ length: 60 }, (_, i) => ({
+        qid: `q${i}`, domain: 'd1', stem: 'Stem?',
+        opts: [
+          { text: 'A', correct: true }, { text: 'B', correct: false },
+          { text: 'C', correct: false }, { text: 'D', correct: false },
+        ],
+        explanation: 'because',
+      })),
+    },
+  }))),
 }))
 
 const wrap = (ui) => render(<AuthProvider><MemoryRouter>{ui}</MemoryRouter></AuthProvider>)
@@ -53,13 +64,14 @@ describe('PracticeExam', () => {
     const u = userEvent.setup()
     wrap(<PracticeExam />)
     await u.click(screen.getByRole('button', { name: /Start practice/i }))
-    expect(screen.getByText(/of 60/i)).toBeInTheDocument()
+    expect(await screen.findByText(/of 60/i)).toBeInTheDocument()
   })
 
   it('reveals instant feedback after answering in practice mode', async () => {
     const u = userEvent.setup()
     wrap(<PracticeExam />)
     await u.click(screen.getByRole('button', { name: /Start practice/i }))
+    await screen.findByText(/of 60/i) // wait for async questions to load
     const options = screen.getAllByText(/A|B|C|D/).length // sanity that options rendered
     expect(options).toBeGreaterThan(0)
     // click the first option card (letter A)

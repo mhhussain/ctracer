@@ -1,4 +1,4 @@
-import { PASS_PCT } from '../../data/practiceQuestions';
+import { PASS_PCT } from '../../lib/practiceEngine';
 import DomainBars from './DomainBars';
 
 export default function PracticeHub({ stats, signedIn, user, onStart, onSignIn, onGoto }) {

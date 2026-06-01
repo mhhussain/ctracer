@@ -1,7 +1,7 @@
 // functions/submitExam.js
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
-import { scoreSession } from './practiceBank.js'
+import { scoreSession } from './examBank.js'
 
 export const submitExam = onCall(async (req) => {
   const { sessionId, answers } = req.data || {}

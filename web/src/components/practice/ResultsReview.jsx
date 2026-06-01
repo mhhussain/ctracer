@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { PASS_PCT } from '../../data/practiceQuestions';
-import { renderInstance } from '../../lib/practiceEngine';
+import { PASS_PCT } from '../../lib/practiceEngine';
 import { DOMAINS } from '../../data/index';
 import ScoreRing from './ScoreRing';
 import DomainBars from './DomainBars';
@@ -19,26 +18,25 @@ export default function ResultsReview({ attempt, posted, onPost, onRetake, onHom
   const hasDetail = instances.length > 0;
 
   const rows = instances.map((inst, i) => {
-    // Timed instances are scored server-side: the answer key and per-question
-    // result arrive in attempt.review, not from the client-side renderInstance.
-    if (inst._serverResolved) {
+    if (isTimed) {
+      // Timed: answer key + result come from the server review payload.
       const rev = attempt.review?.[i] ?? {};
       const sel = rev.selectedPos == null ? undefined : rev.selectedPos;
       return {
-        i,
-        inst,
+        i, inst,
         r: { stem: inst.stem, opts: inst.opts, explanation: rev.explanation },
-        sel,
-        correctPos: rev.correctDisplayPos,
-        isCorrect: !!rev.isCorrect,
-        skipped: sel === undefined,
+        sel, correctPos: rev.correctDisplayPos, isCorrect: !!rev.isCorrect, skipped: sel === undefined,
       };
     }
-    const r = renderInstance(inst);
+    // Practice: instance carries opts[].correct + explanation (answers are public).
     const sel = attempt.answers[i];
-    const correctPos = r.opts.findIndex((o) => o.correct);
+    const correctPos = inst.opts.findIndex((o) => o.correct);
     const isCorrect = sel === correctPos;
-    return { i, inst, r, sel, correctPos, isCorrect, skipped: sel === undefined };
+    return {
+      i, inst,
+      r: { stem: inst.stem, opts: inst.opts, explanation: inst.explanation },
+      sel, correctPos, isCorrect, skipped: sel === undefined,
+    };
   });
   const shown = rows.filter((row) => (filter === "all" ? true : filter === "incorrect" ? !row.isCorrect : row.skipped));
 

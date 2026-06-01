@@ -13,5 +13,10 @@ service cloud.firestore {
     match /exam_sessions/{sessionId} {
       allow read, write: if false;
     }
+    // Question bank holds the timed answer key — never client-accessible.
+    // Functions (Admin SDK) bypass these rules.
+    match /exam_questions/{qid} {
+      allow read, write: if false;
+    }
   }
 }
