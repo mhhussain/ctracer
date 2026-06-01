@@ -2,7 +2,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
-export const postToLeaderboard = onCall(async (req) => {
+export const postToLeaderboard = onCall({ invoker: 'public' }, async (req) => {
   if (!req.auth) throw new HttpsError('unauthenticated', 'sign-in required')
   const { displayName, anonymous } = req.data || {}
   const db = getFirestore()

@@ -3,7 +3,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { scoreSession } from './examBank.js'
 
-export const submitExam = onCall(async (req) => {
+export const submitExam = onCall({ invoker: 'public' }, async (req) => {
   const { sessionId, answers } = req.data || {}
   if (!sessionId || answers === null || typeof answers !== 'object' || Array.isArray(answers)) {
     throw new HttpsError('invalid-argument', 'sessionId and answers are required')

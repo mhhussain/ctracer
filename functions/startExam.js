@@ -3,7 +3,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { loadBank, buildTimedSession } from './examBank.js'
 
-export const startExam = onCall(async (req) => {
+export const startExam = onCall({ invoker: 'public' }, async (req) => {
   const mode = req.data?.mode
   if (mode !== 'timed') {
     throw new HttpsError('invalid-argument', 'startExam only supports timed mode; practice runs client-side')
