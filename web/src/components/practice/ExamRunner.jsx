@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { renderInstance } from '../../lib/practiceEngine';
 import Timer from './Timer';
 import OptionCard from './OptionCard';
 import ProgressGrid from './ProgressGrid';
@@ -8,11 +7,10 @@ import DomainChip from './DomainChip';
 export default function ExamRunner({ attempt, current, secondsLeft, onSelect, onFlag, onNav, onPrev, onNext, onSubmit, onExit, defaultNavOpen }) {
   const [navOpen, setNavOpen] = useState(!!defaultNavOpen);
   const inst = attempt.instances[current];
-  // Timed instances arrive pre-resolved from the server (no client answer key);
-  // practice instances are resolved locally via renderInstance.
-  const r = inst._serverResolved
-    ? { stem: inst.stem, opts: inst.opts, explanation: null }
-    : renderInstance(inst);
+  // Both modes are now server-resolved: stem/opts are strings. Practice instances
+  // additionally carry `opts[].correct` + `explanation` for instant feedback;
+  // timed instances do not (the key is revealed only by submitExam).
+  const r = { stem: inst.stem, opts: inst.opts, explanation: inst.explanation ?? null };
   const total = attempt.instances.length;
   const selected = attempt.answers[current];
   const answered = selected !== undefined;
