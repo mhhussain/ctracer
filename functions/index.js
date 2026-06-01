@@ -4,4 +4,5 @@ initializeApp()
 
 export { startExam } from './startExam.js'
 export { submitExam } from './submitExam.js'
+export { getPracticeExam } from './getPracticeExam.js'
 export { postToLeaderboard } from './postToLeaderboard.js'
