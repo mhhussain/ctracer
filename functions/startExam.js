@@ -1,7 +1,7 @@
 // functions/startExam.js
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
-import { buildSession } from './practiceBank.js'
+import { loadBank, buildTimedSession } from './examBank.js'
 
 export const startExam = onCall(async (req) => {
   const mode = req.data?.mode
@@ -12,7 +12,8 @@ export const startExam = onCall(async (req) => {
     throw new HttpsError('unauthenticated', 'Timed exams require sign-in')
   }
 
-  const { instances, sanitized } = buildSession()
+  const bank = await loadBank()
+  const { instances, sanitized } = buildTimedSession(bank)
   const db = getFirestore()
   const ref = await db.collection('exam_sessions').add({
     uid: req.auth?.uid || null,
