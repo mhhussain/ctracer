@@ -8,6 +8,8 @@
     body { background: #0f1117; color: #e8eaed; font-family: system-ui, -apple-system, sans-serif; padding: 2rem; }
     h1 { color: #f59e0b; margin-bottom: 1.5rem; font-size: 1.5rem; letter-spacing: -0.02em; }
     #login { max-width: 320px; }
+    #login input { display: block; width: 100%; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: #1c1f2e; border: 1px solid #374151; border-radius: 6px; color: #e8eaed; font-size: 0.9rem; }
+    #login input:focus { outline: 2px solid #f59e0b; border-color: transparent; }
     #login button { width: 100%; padding: 0.6rem; background: #f59e0b; border: none; border-radius: 6px; color: #0f1117; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
     #login button:hover { background: #fbbf24; }
     #error { color: #f87171; margin-top: 0.5rem; font-size: 0.85rem; min-height: 1.2em; }
@@ -33,7 +35,9 @@
   <h1>CTracer Admin Dashboard</h1>
 
   <div id="login">
-    <button id="sign-in-btn">Sign in with Microsoft</button>
+    <input id="email" type="email" placeholder="Email" autocomplete="email" />
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+    <button id="sign-in-btn">Sign In</button>
     <p id="error"></p>
   </div>
 
@@ -65,7 +69,7 @@
   <script type="module">
     import { initializeApp }
       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getAuth, signInWithPopup, OAuthProvider, onAuthStateChanged }
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged }
       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
     import { getFirestore, collectionGroup, collection, getDocs }
       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -82,9 +86,11 @@
     let dashboardLoaded = false;
 
     document.getElementById('sign-in-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
       document.getElementById('error').textContent = '';
       try {
-        await signInWithPopup(auth, new OAuthProvider('microsoft.com'));
+        await signInWithEmailAndPassword(auth, email, password);
       } catch (e) {
         document.getElementById('error').textContent = e.message;
       }
