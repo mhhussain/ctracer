@@ -83,6 +83,8 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    let dashboardLoaded = false;
+
     document.getElementById('sign-in-btn').addEventListener('click', async () => {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -98,10 +100,11 @@
       if (!user) return;
       document.getElementById('login').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      await loadDashboard();
+      if (!dashboardLoaded) { dashboardLoaded = true; await loadDashboard(); }
     });
 
     async function loadDashboard() {
+      try {
       const [progressSnap, attemptsSnap, leaderboardSnap] = await Promise.all([
         getDocs(collectionGroup(db, 'progress')),
         getDocs(collectionGroup(db, 'exam_attempts')),
@@ -158,7 +161,7 @@
           Object.values(p.tasks || {}).filter(Boolean).length;
         const overall = Math.round((tasksDone / TASKS_TOTAL) * 100);
         const practiceScore =
-          p.practiceScore != null ? p.practiceScore + '%' : '—';
+          p.practiceScore != null ? Number(p.practiceScore) + '%' : '—';
 
         const timedAttempts = attempts.filter(a => a.mode === 'timed');
         const bestTimed = timedAttempts.length
@@ -223,7 +226,7 @@
                   a.submittedAt?.toDate?.()?.toLocaleDateString() ?? '—';
                 const s = a.score || {};
                 const pd = s.perDomain || {};
-                const dc = d => pd[d] ? `${pd[d].correct}/${pd[d].total}` : '—';
+                const dc = d => pd[d] ? `${Number(pd[d].correct)}/${Number(pd[d].total)}` : '—';
                 const passCell = s.pass != null
                   ? (s.pass
                       ? '<span class="pass">Pass</span>'
@@ -231,8 +234,8 @@
                   : '—';
                 return `<tr>
                   <td>${date}</td>
-                  <td>${a.mode}</td>
-                  <td>${s.pct != null ? s.pct + '%' : '—'}</td>
+                  <td>${esc(a.mode)}</td>
+                  <td>${s.pct != null ? Number(s.pct) + '%' : '—'}</td>
                   <td>${passCell}</td>
                   <td>${dc('d1')}</td><td>${dc('d2')}</td><td>${dc('d3')}</td>
                   <td>${dc('d4')}</td><td>${dc('d5')}</td>
@@ -254,6 +257,9 @@
         tbody.appendChild(tr);
         tbody.appendChild(detailTr);
       });
+      } catch (e) {
+        document.getElementById('loading').textContent = 'Error loading data: ' + esc(e.message);
+      }
     }
 
     function esc(str) {
