@@ -33,3 +33,6 @@ Thumbs.db
 # Local research/reference KBs (knowledge-base holds candidate PII — never commit)
 docs/knowledge-base/
 docs/cca-design/
+
+# Admin dashboard — local credentials, never commit
+admin/firebase-config.local.js

@@ -1,0 +1,508 @@
+# Admin Dashboard Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Create a local HTML admin dashboard that shows all users' study progress and exam attempts by reading directly from Firestore.
+
+**Architecture:** A standalone `admin/dashboard.html` file loads the Firebase JS SDK from CDN, signs in with email/password, then queries Firestore via collection group queries across `progress` and `exam_attempts` subcollections. A gitignored `admin/firebase-config.local.js` holds production credentials. Firestore rules are updated to let UID `IhQZq0x5G4apm7wJSaH20ODKhdv1` read all `users/{uid}/**` documents.
+
+**Tech Stack:** Firebase JS SDK v10 (CDN), vanilla HTML/CSS/JS (no build step), Firestore collection group queries.
+
+---
+
+## Static totals (from `web/src/data/index.js`)
+
+These are used in the dashboard to show `X / total` progress:
+
+- `COURSES_TOTAL = 9` (COURSES array has 9 entries)
+- `PROJECTS_TOTAL = 5` (PROJECTS array has 5 entries)
+- `TASKS_TOTAL = 26` (PHASES flatMap tasks: Phase1=4, Phase2=12, Phase3=5, Phase4=5)
+- Overall % formula: `Math.round((tasksDone / 26) * 100)` — matches `useProgress.js:89`
+
+---
+
+### Task 1: Create feature branch and update .gitignore
+
+**Files:**
+- Modify: `.gitignore`
+
+- [ ] **Step 1: Create feature branch off main**
+
+```bash
+git checkout main
+git pull
+git checkout -b feature/admin-dashboard
+```
+
+Expected: switched to new branch `feature/admin-dashboard`
+
+- [ ] **Step 2: Add admin config file to .gitignore**
+
+Open `.gitignore` and add these two lines at the end of the file (after the `# Local research/reference KBs` block):
+
+```
+# Admin dashboard — local credentials, never commit
+admin/firebase-config.local.js
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add .gitignore
+git commit -m "chore: gitignore admin firebase config"
+```
+
+---
+
+### Task 2: Update Firestore rules with admin read access
+
+**Files:**
+- Modify: `firestore.rules`
+
+- [ ] **Step 1: Replace the `users` match block**
+
+Current content of `firestore.rules` (lines 4–6):
+```
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+```
+
+Replace with:
+```
+    match /users/{uid}/{document=**} {
+      allow read: if request.auth != null
+        && (request.auth.uid == uid
+            || request.auth.uid == 'IhQZq0x5G4apm7wJSaH20ODKhdv1');
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+```
+
+The full file after the change:
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read: if request.auth != null
+        && (request.auth.uid == uid
+            || request.auth.uid == 'IhQZq0x5G4apm7wJSaH20ODKhdv1');
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+    // Public leaderboard: anyone can read; only Functions (Admin SDK) can write.
+    match /leaderboard/{uid} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Exam sessions hold the answer key — never client-accessible.
+    match /exam_sessions/{sessionId} {
+      allow read, write: if false;
+    }
+    // Question bank holds the timed answer key — never client-accessible.
+    // Functions (Admin SDK) bypass these rules.
+    match /exam_questions/{qid} {
+      allow read, write: if false;
+    }
+  }
+}
+```
+
+- [ ] **Step 2: Commit rules change**
+
+```bash
+git add firestore.rules
+git commit -m "feat: grant admin UID read access to all user data"
+```
+
+- [ ] **Step 3: Deploy Firestore rules to production**
+
+```bash
+firebase deploy --only firestore:rules --project=iammoo-ctracer
+```
+
+Expected output contains: `✔  firestore: released rules`
+
+---
+
+### Task 3: Create admin/firebase-config.local.js
+
+**Files:**
+- Create: `admin/firebase-config.local.js` (gitignored — do NOT commit)
+
+- [ ] **Step 1: Fetch production Firebase config**
+
+```bash
+firebase apps:sdkconfig WEB --project=iammoo-ctracer
+```
+
+This prints a Firebase config object. Note the values for:
+`apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`
+
+- [ ] **Step 2: Create the config file**
+
+Create `admin/firebase-config.local.js` with the values from the previous step:
+
+```js
+// DO NOT COMMIT — gitignored. Populated from:
+//   firebase apps:sdkconfig WEB --project=iammoo-ctracer
+window.firebaseConfig = {
+  apiKey: "<value from sdkconfig output>",
+  authDomain: "<value from sdkconfig output>",
+  projectId: "<value from sdkconfig output>",
+  storageBucket: "<value from sdkconfig output>",
+  messagingSenderId: "<value from sdkconfig output>",
+  appId: "<value from sdkconfig output>",
+};
+```
+
+- [ ] **Step 3: Verify the file is gitignored**
+
+```bash
+git status
+```
+
+Expected: `admin/firebase-config.local.js` does NOT appear in the output (it's ignored). If it does appear, check that `.gitignore` was saved correctly in Task 1.
+
+---
+
+### Task 4: Create admin/dashboard.html
+
+**Files:**
+- Create: `admin/dashboard.html`
+
+- [ ] **Step 1: Create the `admin/` directory and `dashboard.html`**
+
+Create `admin/dashboard.html` with this exact content:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CTracer Admin Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f1117; color: #e8eaed; font-family: system-ui, -apple-system, sans-serif; padding: 2rem; }
+    h1 { color: #f59e0b; margin-bottom: 1.5rem; font-size: 1.5rem; letter-spacing: -0.02em; }
+    #login { max-width: 320px; }
+    #login input { display: block; width: 100%; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: #1c1f2e; border: 1px solid #374151; border-radius: 6px; color: #e8eaed; font-size: 0.9rem; }
+    #login input:focus { outline: 2px solid #f59e0b; border-color: transparent; }
+    #login button { width: 100%; padding: 0.6rem; background: #f59e0b; border: none; border-radius: 6px; color: #0f1117; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+    #login button:hover { background: #fbbf24; }
+    #error { color: #f87171; margin-top: 0.5rem; font-size: 0.85rem; min-height: 1.2em; }
+    #dashboard { display: none; }
+    #stats { margin-bottom: 1rem; color: #9ca3af; font-size: 0.85rem; }
+    .loading { color: #9ca3af; margin: 2rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { background: #1c1f2e; color: #f59e0b; text-align: left; padding: 0.6rem 0.8rem; border-bottom: 2px solid #374151; white-space: nowrap; }
+    td { padding: 0.5rem 0.8rem; border-bottom: 1px solid #1f2937; vertical-align: middle; }
+    tr.data-row { cursor: pointer; }
+    tr.data-row:hover td { background: #161922; }
+    tr.detail-row td { background: #13161f; padding: 0.75rem 1rem; }
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.25rem; }
+    .detail-table th { background: #1a1d2a; padding: 0.4rem 0.6rem; font-size: 0.75rem; color: #9ca3af; }
+    .detail-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #1a1d28; }
+    .pass { color: #34d399; font-weight: 600; }
+    .fail { color: #f87171; }
+    #main-table { display: none; }
+    .expand-icon { color: #6b7280; margin-right: 0.4rem; font-size: 0.7rem; }
+  </style>
+</head>
+<body>
+  <h1>CTracer Admin Dashboard</h1>
+
+  <div id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="email" />
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+    <button id="sign-in-btn">Sign In</button>
+    <p id="error"></p>
+  </div>
+
+  <div id="dashboard">
+    <p id="stats"></p>
+    <p id="loading" class="loading">Loading data…</p>
+    <table id="main-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Overall %</th>
+          <th>Courses</th>
+          <th>Projects</th>
+          <th>Tasks</th>
+          <th>Practice Score</th>
+          <th>Attempts</th>
+          <th>Best Timed</th>
+          <th>Passed?</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- DO NOT COMMIT: firebase-config.local.js holds production credentials -->
+  <!-- Setup: run `firebase apps:sdkconfig WEB --project=iammoo-ctracer` -->
+  <!-- then copy values into admin/firebase-config.local.js -->
+  <script src="firebase-config.local.js"></script>
+  <script type="module">
+    import { initializeApp }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, collectionGroup, collection, getDocs }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    // Totals from web/src/data/index.js — update if data changes
+    const COURSES_TOTAL = 9;
+    const PROJECTS_TOTAL = 5;
+    const TASKS_TOTAL = 26; // PHASES.flatMap(p => p.tasks).length
+
+    const app = initializeApp(window.firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    document.getElementById('sign-in-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      document.getElementById('error').textContent = '';
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (e) {
+        document.getElementById('error').textContent = e.message;
+      }
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      await loadDashboard();
+    });
+
+    async function loadDashboard() {
+      const [progressSnap, attemptsSnap, leaderboardSnap] = await Promise.all([
+        getDocs(collectionGroup(db, 'progress')),
+        getDocs(collectionGroup(db, 'exam_attempts')),
+        getDocs(collection(db, 'leaderboard')),
+      ]);
+
+      // uid -> display name from leaderboard
+      const names = {};
+      leaderboardSnap.forEach(doc => {
+        names[doc.id] = doc.data().displayName || null;
+      });
+
+      // uid -> progress doc data  (path: users/{uid}/progress/data)
+      const progressByUid = {};
+      progressSnap.forEach(doc => {
+        const uid = doc.ref.parent.parent.id;
+        progressByUid[uid] = doc.data();
+      });
+
+      // uid -> attempts[]  (path: users/{uid}/exam_attempts/{id})
+      const attemptsByUid = {};
+      attemptsSnap.forEach(doc => {
+        const uid = doc.ref.parent.parent.id;
+        if (!attemptsByUid[uid]) attemptsByUid[uid] = [];
+        attemptsByUid[uid].push({ id: doc.id, ...doc.data() });
+      });
+
+      const allUids = new Set([
+        ...Object.keys(progressByUid),
+        ...Object.keys(attemptsByUid),
+      ]);
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('main-table').style.display = 'table';
+      document.getElementById('stats').textContent =
+        `${allUids.size} user${allUids.size !== 1 ? 's' : ''}`;
+
+      const rows = [];
+      for (const uid of allUids) {
+        const p = progressByUid[uid] || {};
+        const attempts = (attemptsByUid[uid] || []).sort((a, b) => {
+          const ta = a.submittedAt?.toMillis?.() ?? 0;
+          const tb = b.submittedAt?.toMillis?.() ?? 0;
+          return tb - ta;
+        });
+
+        const coursesDone =
+          Object.values(p.courses || {}).filter(Boolean).length;
+        const projectsDone =
+          Object.values(p.projects || {}).filter(v => v === 'complete').length;
+        const projectsWip =
+          Object.values(p.projects || {}).filter(v => v === 'in_progress').length;
+        const tasksDone =
+          Object.values(p.tasks || {}).filter(Boolean).length;
+        const overall = Math.round((tasksDone / TASKS_TOTAL) * 100);
+        const practiceScore =
+          p.practiceScore != null ? p.practiceScore + '%' : '—';
+
+        const timedAttempts = attempts.filter(a => a.mode === 'timed');
+        const bestTimed = timedAttempts.length
+          ? Math.max(...timedAttempts.map(a => a.score?.pct ?? 0))
+          : null;
+        const passed = timedAttempts.some(a => a.score?.pass === true);
+        const name = names[uid] || (uid.slice(0, 8) + '…');
+
+        rows.push({
+          uid, name, overall, coursesDone, projectsDone, projectsWip,
+          tasksDone, practiceScore, attempts, timedAttempts, bestTimed, passed,
+        });
+      }
+
+      // Sort: overall % desc, then by attempt count desc
+      rows.sort((a, b) =>
+        b.overall - a.overall || b.timedAttempts.length - a.timedAttempts.length
+      );
+
+      const tbody = document.getElementById('tbody');
+      rows.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = 'data-row';
+
+        const passedCell = row.attempts.length
+          ? (row.passed
+              ? '<span class="pass">Yes</span>'
+              : '<span class="fail">No</span>')
+          : '—';
+        const timedBest = row.bestTimed != null ? row.bestTimed + '%' : '—';
+        const projectsCell = row.projectsDone + ' done'
+          + (row.projectsWip ? ', ' + row.projectsWip + ' WIP' : '')
+          + ' / ' + PROJECTS_TOTAL;
+
+        tr.innerHTML = `
+          <td><span class="expand-icon">▶</span>${esc(row.name)}</td>
+          <td>${row.overall}%</td>
+          <td>${row.coursesDone} / ${COURSES_TOTAL}</td>
+          <td>${projectsCell}</td>
+          <td>${row.tasksDone} / ${TASKS_TOTAL}</td>
+          <td>${row.practiceScore}</td>
+          <td>${row.attempts.length}</td>
+          <td>${timedBest}</td>
+          <td>${passedCell}</td>
+        `;
+
+        const detailTr = document.createElement('tr');
+        detailTr.className = 'detail-row';
+        detailTr.style.display = 'none';
+
+        if (row.attempts.length) {
+          detailTr.innerHTML = `<td colspan="9">
+            <table class="detail-table">
+              <thead>
+                <tr>
+                  <th>Date</th><th>Mode</th><th>Score</th><th>Pass</th>
+                  <th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th>
+                </tr>
+              </thead>
+              <tbody>${row.attempts.map(a => {
+                const date =
+                  a.submittedAt?.toDate?.()?.toLocaleDateString() ?? '—';
+                const s = a.score || {};
+                const pd = s.perDomain || {};
+                const dc = d => pd[d] ? `${pd[d].correct}/${pd[d].total}` : '—';
+                const passCell = s.pass != null
+                  ? (s.pass
+                      ? '<span class="pass">Pass</span>'
+                      : '<span class="fail">Fail</span>')
+                  : '—';
+                return `<tr>
+                  <td>${date}</td>
+                  <td>${a.mode}</td>
+                  <td>${s.pct != null ? s.pct + '%' : '—'}</td>
+                  <td>${passCell}</td>
+                  <td>${dc('d1')}</td><td>${dc('d2')}</td><td>${dc('d3')}</td>
+                  <td>${dc('d4')}</td><td>${dc('d5')}</td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </td>`;
+        } else {
+          detailTr.innerHTML =
+            `<td colspan="9" style="color:#6b7280">No exam attempts recorded.</td>`;
+        }
+
+        tr.addEventListener('click', () => {
+          const open = detailTr.style.display === 'table-row';
+          detailTr.style.display = open ? 'none' : 'table-row';
+          tr.querySelector('.expand-icon').textContent = open ? '▶' : '▼';
+        });
+
+        tbody.appendChild(tr);
+        tbody.appendChild(detailTr);
+      });
+    }
+
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add admin/dashboard.html
+git commit -m "feat: add local admin dashboard for user progress"
+```
+
+- [ ] **Step 3: Verify dashboard.html is tracked and config is not**
+
+```bash
+git status
+```
+
+Expected: clean working tree. `admin/firebase-config.local.js` must NOT appear.
+
+---
+
+### Task 5: Push branch and create PR
+
+**Files:** none (git operations only)
+
+- [ ] **Step 1: Push branch**
+
+```bash
+git push -u origin feature/admin-dashboard
+```
+
+- [ ] **Step 2: Create PR**
+
+```bash
+gh pr create \
+  --title "feat: local admin dashboard for user progress" \
+  --body "$(cat <<'EOF'
+## Summary
+
+- Adds `admin/dashboard.html` — a standalone local HTML page that signs in with Firebase email/password and shows all users' progress and exam attempts
+- Updates `firestore.rules` to grant UID `IhQZq0x5G4apm7wJSaH20ODKhdv1` read access to all `users/{uid}/**` documents (admin view only; no write access granted)
+- Adds `admin/firebase-config.local.js` to `.gitignore` to prevent accidental credential commit
+
+## Usage
+
+1. Run `firebase apps:sdkconfig WEB --project=iammoo-ctracer` and copy values into `admin/firebase-config.local.js`
+2. Open `admin/dashboard.html` in a browser
+3. Sign in with your account — data loads automatically
+
+## Test plan
+
+- [ ] Sign in as `IhQZq0x5G4apm7wJSaH20ODKhdv1` account → dashboard loads without permission errors
+- [ ] All users appear in the table with correct progress counts
+- [ ] Clicking a row expands exam attempt details
+- [ ] `admin/firebase-config.local.js` does not appear in `git status`
+- [ ] Firestore rules deploy successfully: `firebase deploy --only firestore:rules --project=iammoo-ctracer`
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
+
+- [ ] **Step 3: Note the PR URL**
+
+The command will print the PR URL. Share it with the user.
